@@ -153,6 +153,46 @@ This plugin follows the principle of **composition over recreation**. Rather tha
 - ✅ Automatic updates from upstream plugins
 - ✅ Community-driven improvements
 
+## CLI Tools
+
+### List All Supported Rules
+
+See exactly which rules are configured in each preset:
+
+```bash
+# Basic rule listing
+pnpm run list-rules
+
+# Show rule options/configuration
+pnpm run list-rules:verbose  
+
+# Show usage examples
+pnpm run list-rules:usage
+
+# Show help
+pnpm run cli:help
+```
+
+### After Installation
+
+Once installed globally or in a project, you can also use:
+
+```bash
+# If installed globally
+functype-list-rules --help
+
+# Or with npx
+npx eslint-plugin-functype functype-list-rules
+```
+
+## CI/CD
+
+This plugin includes GitHub Actions workflows for:
+- ✅ **Testing** on Node.js 18, 20, 22
+- ✅ **Linting** with our own rules  
+- ✅ **Building** and validation
+- ✅ **Publishing** to npm on version changes
+
 ## Development
 
 ```bash
@@ -164,4 +204,7 @@ pnpm run build
 
 # Lint
 pnpm run lint
+
+# List rules during development  
+pnpm run list-rules
 ```

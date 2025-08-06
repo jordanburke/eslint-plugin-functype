@@ -9,6 +9,9 @@
     "README.md",
     "LICENSE"
   ],
+  "bin": {
+    "functype-list-rules": "dist/cli/list-rules.js"
+  },
   "keywords": [
     "eslint",
     "eslintplugin",
@@ -20,7 +23,11 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src --ext .ts",
-    "prepare": "pnpm run build"
+    "prepare": "pnpm run build",
+    "list-rules": "node dist/cli/list-rules.js",
+    "list-rules:verbose": "node dist/cli/list-rules.js --verbose",
+    "list-rules:usage": "node dist/cli/list-rules.js --usage",
+    "cli:help": "node dist/cli/list-rules.js --help"
   },
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.39.0",
