@@ -11,10 +11,8 @@ export default {
     "functional/prefer-immutable-types": "warn",
     "functional/functional-parameters": "warn",
     
-    // Stricter TypeScript rules
+    // Stricter TypeScript rules (non-type-aware)
     "@typescript-eslint/explicit-function-return-type": "error",
-    "@typescript-eslint/prefer-readonly": "error",
     "@typescript-eslint/no-non-null-assertion": "error",
-    "@typescript-eslint/prefer-readonly-parameter-types": "warn",
   },
 }

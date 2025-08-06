@@ -20,7 +20,7 @@ pnpm add -D eslint-plugin-functype @typescript-eslint/eslint-plugin @typescript-
 
 ## Usage
 
-### Quick Start - Recommended Configuration
+### ESLint 8 (.eslintrc) - Quick Start
 
 ```javascript
 // .eslintrc.js
@@ -33,18 +33,78 @@ module.exports = {
 }
 ```
 
-### Strict Mode
-
-For maximum functional programming enforcement:
+### ESLint 8 - Strict Mode
 
 ```javascript
-// .eslintrc.js  
+// .eslintrc.js
 module.exports = {
   extends: ["plugin:functype/strict"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: "./tsconfig.json", 
+    project: "./tsconfig.json",
   },
+}
+```
+
+### ESLint 9+ (Flat Config)
+
+For ESLint 9+, create your own flat config using our rule selections:
+
+```javascript
+// eslint.config.js
+import js from "@eslint/js"
+import tseslint from "@typescript-eslint/eslint-plugin"
+import functional from "eslint-plugin-functional"
+import parser from "@typescript-eslint/parser"
+
+export default [
+  js.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        project: "./tsconfig.json",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+      functional,
+    },
+    rules: {
+      // Core immutability
+      "prefer-const": "error",
+      "no-var": "error",
+      
+      // TypeScript functional patterns
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      
+      // Functional programming rules
+      "functional/no-let": "error",
+      "functional/immutable-data": "warn",
+      "functional/no-loop-statements": "off", // Enable as "error" for strict mode
+    },
+  }
+]
+```
+
+### Individual Rule Usage
+
+You can also use individual rules without our presets:
+
+```javascript
+{
+  "plugins": ["@typescript-eslint", "functional"],
+  "rules": {
+    "functional/no-let": "error",
+    "functional/immutable-data": "warn",
+    "@typescript-eslint/no-explicit-any": "error",
+    "prefer-const": "error"
+  }
 }
 ```
 

@@ -1,3 +1,4 @@
+// Legacy ESLint config format for compatibility
 export default {
   plugins: [
     "@typescript-eslint",
@@ -15,7 +16,6 @@ export default {
     // TypeScript functional patterns
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/prefer-readonly": "warn",
     "@typescript-eslint/no-unused-vars": [
       "error",
       { argsIgnorePattern: "^_" }
