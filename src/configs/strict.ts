@@ -1,7 +1,9 @@
 import recommended from "./recommended"
 
+// ESLint 9.x Flat Config Format - Strict rules overlay
 export default {
   ...recommended,
+  name: "functype/strict",
   rules: {
     ...recommended.rules,
     

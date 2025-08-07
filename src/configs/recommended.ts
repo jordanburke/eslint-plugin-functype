@@ -1,19 +1,13 @@
-// Legacy ESLint config format for compatibility
+// ESLint 9.x Flat Config Format
+// Complete functional TypeScript config with formatting and import organization
 export default {
-  plugins: [
-    "@typescript-eslint",
-    "functional"
-  ],
-  extends: [
-    "eslint:recommended",
-    "@typescript-eslint/recommended"
-  ],
+  name: "functype/recommended",
   rules: {
     // Core JavaScript immutability
     "prefer-const": "error",
     "no-var": "error",
     
-    // TypeScript functional patterns
+    // TypeScript functional patterns (when @typescript-eslint is available)
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": [
@@ -21,7 +15,7 @@ export default {
       { argsIgnorePattern: "^_" }
     ],
     
-    // Functional programming rules from eslint-plugin-functional
+    // Functional programming rules (when eslint-plugin-functional is available)
     "functional/no-let": "error",
     "functional/immutable-data": "warn",
     "functional/no-loop-statements": "off", // Start disabled, can enable later
@@ -33,5 +27,18 @@ export default {
     "functional/no-conditional-statements": "off",
     "functional/no-expression-statements": "off",
     "functional/no-return-void": "off",
+    
+    // Code formatting (when eslint-plugin-prettier is available)
+    "prettier/prettier": [
+      "error",
+      {},
+      {
+        usePrettierrc: true,
+      },
+    ],
+    
+    // Import organization (when eslint-plugin-simple-import-sort is available)
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
   },
 }

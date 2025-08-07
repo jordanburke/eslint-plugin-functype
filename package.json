@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-functype",
-  "version": "1.0.0",
-  "description": "Curated ESLint configuration bundle for functional TypeScript programming",
+  "version": "1.1.0",
+  "description": "Curated ESLint flat config bundle for functional TypeScript programming (ESLint 9.x+)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -30,10 +30,13 @@
     "cli:help": "node dist/cli/list-rules.js --help"
   },
   "peerDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0 || ^8.39.0 || ^9.0.0",
+    "@typescript-eslint/parser": "^8.38.0 || ^8.39.0 || ^9.0.0",
     "eslint": "^9.32.0",
-    "eslint-plugin-functional": "^9.0.2"
+    "eslint-plugin-functional": "^9.0.2",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "prettier": "^3.0.0"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -45,6 +48,10 @@
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
     "eslint-plugin-functional": "^9.0.2",
+    "eslint-plugin-functype": "file:eslint-plugin-functype-1.1.0.tgz",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   },
   "author": "",
