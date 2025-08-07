@@ -5,9 +5,8 @@ export default defineConfig({
   entry: {
     // Main plugin entry
     'index': 'src/index.ts',
-    // Configuration files
-    'configs/recommended': 'src/configs/recommended.ts',
-    'configs/strict': 'src/configs/strict.ts',
+    // Rule files
+    'rules/index': 'src/rules/index.ts',
     // CLI binary
     'cli/list-rules': 'src/cli/list-rules.ts',
     // Utility files

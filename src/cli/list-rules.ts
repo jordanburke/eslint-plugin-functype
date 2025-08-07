@@ -81,6 +81,7 @@ function extractRules(config: Config): Map<string, RuleData> {
 }
 
 function getRuleSource(ruleName: string): string {
+  if (ruleName.startsWith('functype/')) return 'eslint-plugin-functype'
   if (ruleName.startsWith('functional/')) return 'eslint-plugin-functional'
   if (ruleName.startsWith('@typescript-eslint/')) return '@typescript-eslint/eslint-plugin'
   return 'eslint (core)'
@@ -230,14 +231,14 @@ async function main(): Promise<void> {
   const checkDeps = args.includes('--check-deps') || args.includes('--check')
   
   if (showHelp) {
-    console.log(colorize('📋 ESLint Plugin Functype - Rule Lister', 'bright'))
+    console.log(colorize('📋 ESLint Plugin Functype - Custom Rules', 'bright'))
     console.log('\nUsage: pnpm run list-rules [options]')
     console.log('\nOptions:')
-    console.log('  --verbose, -v      Show rule options')
+    console.log('  --verbose, -v      Show rule descriptions and schemas')
     console.log('  --usage, -u        Show usage examples')
     console.log('  --check-deps       Check peer dependency status')  
     console.log('  --help, -h         Show this help message')
-    console.log('\nThis command lists all rules configured in the functype plugin configurations.')
+    console.log('\nThis command lists all custom rules provided by the functype plugin.')
     return
   }
   
@@ -253,7 +254,7 @@ async function main(): Promise<void> {
     return
   }
   
-  console.log(colorize('🔧 ESLint Plugin Functype - Supported Rules', 'bright'))
+  console.log(colorize('🔧 ESLint Plugin Functype - Custom Rules', 'bright'))
   
   const distPath = path.join(__dirname, '..', '..', 'dist')
   
@@ -262,47 +263,87 @@ async function main(): Promise<void> {
     process.exit(1)
   }
   
-  const configs = [
-    {
-      name: 'Recommended',
-      path: path.join(distPath, 'configs', 'recommended.js')
-    },
-    {
-      name: 'Strict',
-      path: path.join(distPath, 'configs', 'strict.js')
+  // Load the plugin to get available rules
+  try {
+    const pluginPath = path.join(distPath, 'index.js')
+    const plugin = require(pluginPath)
+    
+    if (!plugin.rules) {
+      console.error(colorize('❌ No rules found in plugin.', 'red'))
+      process.exit(1)
     }
-  ]
-  
-  const loadedConfigs: LoadedConfig[] = []
-  
-  for (const {name, path: configPath} of configs) {
-    const config = await loadConfig(configPath)
-    if (config) {
-      const rules = extractRules(config)
-      loadedConfigs.push({name, rules})
-      printRules(name, rules)
-    }
-  }
-  
-  if (loadedConfigs.length > 0) {
-    printSummary(loadedConfigs)
+    
+    console.log(colorize('\n📦 Available Custom Rules:', 'bright'))
+    console.log(colorize('='.repeat(40), 'blue'))
+    
+    const rules = Object.keys(plugin.rules)
+    
+    rules.forEach(ruleName => {
+      const rule = plugin.rules[ruleName]
+      const fullName = `functype/${ruleName}`
+      
+      console.log(`\n${colorize('●', 'green')} ${colorize(fullName, 'bright')}`)
+      
+      if (rule.meta?.docs?.description) {
+        console.log(`  ${colorize('Description:', 'cyan')} ${rule.meta.docs.description}`)
+      }
+      
+      if (rule.meta?.type) {
+        const typeColor = rule.meta.type === 'problem' ? 'red' : 
+                         rule.meta.type === 'suggestion' ? 'yellow' : 'blue'
+        console.log(`  ${colorize('Type:', 'cyan')} ${colorize(rule.meta.type, typeColor)}`)
+      }
+      
+      if (rule.meta?.fixable) {
+        console.log(`  ${colorize('Fixable:', 'cyan')} ${colorize('Yes', 'green')}`)
+      }
+      
+      if (showUsage) {
+        console.log(`  ${colorize('Usage:', 'cyan')} "${fullName}": "error"`)
+      }
+    })
+    
+    console.log(colorize(`\n📊 Summary: ${rules.length} custom rules available`, 'bright'))
     
     if (showUsage) {
-      printUsageInfo()
+      printCustomUsageInfo()
     }
     
     console.log(colorize('\n💡 Tips:', 'bright'))
-    console.log('• Use --verbose to see rule options')
+    console.log('• Use --verbose to see detailed rule information')
     console.log('• Use --usage to see configuration examples')
-    console.log('• Red rules will cause build failures')
-    console.log('• Yellow rules are warnings only')
-    console.log('• Blue rules are disabled by default')
+    console.log('• All rules are prefixed with "functype/"')
+    console.log('• Consider using eslint-config-functype for pre-configured setup')
     
     console.log(colorize('\n🔗 Links:', 'bright'))
     console.log('• Documentation: https://github.com/jordanburke/eslint-plugin-functype')
-    console.log('• eslint-plugin-functional: https://github.com/eslint-functional/eslint-plugin-functional')
-    console.log('• @typescript-eslint: https://typescript-eslint.io/')
+    console.log('• Configuration Bundle: https://github.com/jordanburke/eslint-config-functype')
+    console.log('• Functype Library: https://github.com/jordanburke/functype')
+    
+  } catch (error) {
+    console.error(colorize('❌ Error loading plugin:', 'red'), (error as Error).message)
+    process.exit(1)
   }
+}
+
+function printCustomUsageInfo(): void {
+  console.log(colorize('\n💡 Usage Examples:', 'bright'))
+  console.log(colorize('='.repeat(30), 'blue'))
+  console.log('\n' + colorize('ESLint 9+ (flat config):', 'green'))
+  console.log('  import functypePlugin from "eslint-plugin-functype"')
+  console.log('  export default [')
+  console.log('    {')
+  console.log('      plugins: { functype: functypePlugin },')
+  console.log('      rules: {')
+  console.log('        "functype/prefer-option": "error",')
+  console.log('        "functype/prefer-either": "error",')
+  console.log('        "functype/no-get-unsafe": "error",')
+  console.log('      }')
+  console.log('    }')
+  console.log('  ]')
+  console.log('\n' + colorize('With eslint-config-functype (recommended):', 'green'))
+  console.log('  import functypeConfig from "eslint-config-functype"')
+  console.log('  export default [functypeConfig.recommended]')
 }
 
 // Run the CLI

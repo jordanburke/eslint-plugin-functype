@@ -1,17 +1,13 @@
 
-import recommended from "./configs/recommended"
-import strict from "./configs/strict"
+import rules from "./rules"
 
 // ESLint 9.x Flat Config Plugin
 const plugin = {
-  configs: {
-    recommended,
-    strict,
-  },
+  rules,
   // Meta information
   meta: {
     name: "eslint-plugin-functype",
-    version: "1.2.0",
+    version: "2.0.0",
   },
 }
 
