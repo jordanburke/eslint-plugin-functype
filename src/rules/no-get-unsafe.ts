@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -44,7 +45,7 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
-    function isMonadicType(node: any): boolean {
+    function isMonadicType(node: ASTNode): boolean {
       // This is a simplified check - in a real implementation, you'd want
       // more sophisticated type checking using TypeScript's type checker
       if (!node) return false
@@ -53,32 +54,42 @@ const rule: Rule.RuleModule = {
       
       // Check for common patterns that indicate monadic types
       const text = sourceCode.getText(node)
-      return /\b(Option|Either|Maybe|Result|Some|None|Left|Right)\b/.test(text) ||
-             // Check for method chains that suggest monadic operations
-             /\.(map|flatMap|filter|fold)\s*\(/.test(text)
+      
+      // Direct type checks - constructors or type names
+      if (/\b(Option|Either|Maybe|Result|Some|None|Left|Right)\b/.test(text)) {
+        return true
+      }
+      
+      // Method chains that suggest monadic operations
+      if (/\.(map|flatMap|filter|fold)\s*\(/.test(text)) {
+        return true
+      }
+      
+      // Variable names that suggest monadic types (case insensitive)
+      if (/\b(option|either|maybe|result|some|none|left|right)\w*\b/i.test(text)) {
+        return true
+      }
+      
+      // Check the specific node type and name
+      if (node.type === "Identifier") {
+        const varName = node.name.toLowerCase()
+        if (/(option|either|maybe|result|some|none|left|right|opt)/.test(varName)) {
+          return true
+        }
+      }
+      
+      // Check for CallExpression pattern like Some("test").map()
+      if (node.type === "CallExpression" && 
+          node.callee.type === "MemberExpression" &&
+          node.callee.object) {
+        return isMonadicType(node.callee.object)
+      }
+      
+      return false
     }
 
     return {
-      MemberExpression(node: any) {
-        if (allowInTests && isInTestFile()) return
-
-        const property = node.property
-        if (!property || property.type !== "Identifier") return
-
-        const methodName = property.name
-        if (!unsafeMethods.includes(methodName)) return
-
-        // Check if this looks like it's being called on a monadic type
-        if (isMonadicType(node.object)) {
-          context.report({
-            node,
-            messageId: "noUnsafeGet",
-            data: { method: methodName },
-          })
-        }
-      },
-
-      CallExpression(node: any) {
+      CallExpression(node: ASTNode) {
         if (allowInTests && isInTestFile()) return
 
         if (node.callee.type !== "MemberExpression") return

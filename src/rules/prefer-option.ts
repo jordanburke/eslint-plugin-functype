@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -28,20 +29,21 @@ const rule: Rule.RuleModule = {
   },
 
   create(context) {
-    const options = context.options[0] || {}
-    const allowNullableIntersections = options.allowNullableIntersections || false
+    // const options = context.options[0] || {}
+    // Remove unused variable
+    // const _allowNullableIntersections = options.allowNullableIntersections || false
 
     return {
-      TSUnionType(node: any) {
+      TSUnionType(node: ASTNode) {
         if (!node.types || node.types.length < 2) return
 
-        const hasNull = node.types.some((type: any) => 
+        const hasNull = node.types.some((type: ASTNode) => 
           type.type === "TSNullKeyword" || type.type === "TSUndefinedKeyword"
         )
         
         if (!hasNull) return
 
-        const nonNullTypes = node.types.filter((type: any) => 
+        const nonNullTypes = node.types.filter((type: ASTNode) => 
           type.type !== "TSNullKeyword" && type.type !== "TSUndefinedKeyword"
         )
 

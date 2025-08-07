@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -32,7 +33,7 @@ const rule: Rule.RuleModule = {
     const options = context.options[0] || {}
     const checkNestedMaps = options.checkNestedMaps !== false
 
-    function isMapFollowedByFlat(node: any): boolean {
+    function isMapFollowedByFlat(node: ASTNode): boolean {
       if (node.type !== "CallExpression") return false
       
       const callee = node.callee
@@ -53,12 +54,24 @@ const rule: Rule.RuleModule = {
       return false
     }
 
-    function returnsArray(functionNode: any): boolean {
-      if (!functionNode.body) return false
+    function returnsArray(functionNode: ASTNode): boolean {
+      if (!functionNode || !functionNode.body) return false
 
       // Arrow function with expression body
       if (functionNode.body.type === "ArrayExpression") {
         return true
+      }
+
+      // Arrow function with call expression body
+      if (functionNode.body.type === "CallExpression") {
+        const call = functionNode.body
+        if (call.callee.type === "MemberExpression") {
+          const methodName = call.callee.property.name
+          // Common methods that return arrays
+          if (["map", "filter", "slice", "concat", "split"].includes(methodName)) {
+            return true
+          }
+        }
       }
 
       // Function with block body
@@ -90,7 +103,7 @@ const rule: Rule.RuleModule = {
       return false
     }
 
-    function isNestedMapReturningArrays(node: any): boolean {
+    function isNestedMapReturningArrays(node: ASTNode): boolean {
       if (node.type !== "CallExpression") return false
       
       const callee = node.callee
@@ -109,7 +122,7 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      CallExpression(node: any) {
+      CallExpression(node: ASTNode) {
         // Check for .map().flat() pattern
         if (isMapFollowedByFlat(node)) {
           const sourceCode = context.getSourceCode()
@@ -119,7 +132,7 @@ const rule: Rule.RuleModule = {
             messageId: "preferFlatMapOverMapFlat",
             fix(fixer) {
               // Get the .map() call
-              const mapCall = (node.callee as any).object
+              const mapCall = (node.callee as ASTNode).object
               const mapCallText = sourceCode.getText(mapCall)
               
               // Replace .map() with .flatMap() and remove .flat()
@@ -151,7 +164,7 @@ const rule: Rule.RuleModule = {
             const firstMapCallback = object.arguments[0]
             if (firstMapCallback && returnsArray(firstMapCallback)) {
               context.report({
-                node,
+                node: object, // Report on the first map call
                 messageId: "preferFlatMapChain",
               })
             }

@@ -4,26 +4,8 @@ import fs from 'fs'
 import path from 'path'
 import { validatePeerDependencies, type ValidationResult } from '../utils/dependency-validator'
 
-// Types for better type safety
-type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2
-type RuleConfig = RuleSeverity | [RuleSeverity, ...unknown[]]
-
-interface RuleData {
-  severity: RuleSeverity
-  options: unknown[]
-  source: string
-}
-
-interface Config {
-  rules?: Record<string, RuleConfig>
-  extends?: string[]
-  plugins?: string[]
-}
-
-interface LoadedConfig {
-  name: string
-  rules: Map<string, RuleData>
-}
+// Remove unused type
+// type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2
 
 // Colors for console output
 const colors = {
@@ -41,148 +23,9 @@ function colorize(text: string, color: keyof typeof colors): string {
   return colors[color] + text + colors.reset
 }
 
-async function loadConfig(configPath: string): Promise<Config | null> {
-  try {
-    // For built JS files, use require
-    if (configPath.endsWith('.js')) {
-      const configModule = require(configPath)
-      return configModule.default || configModule
-    }
-    
-    // For TS files, we'd need to use dynamic import
-    const configModule = await import(configPath)
-    return configModule.default || configModule
-  } catch (error) {
-    console.error(
-      colorize(`Error loading config from ${configPath}:`, 'red'), 
-      (error as Error).message
-    )
-    return null
-  }
-}
 
-function extractRules(config: Config): Map<string, RuleData> {
-  const rules = new Map<string, RuleData>()
-  
-  if (config.rules) {
-    Object.entries(config.rules).forEach(([ruleName, ruleConfig]) => {
-      const severity = Array.isArray(ruleConfig) ? ruleConfig[0] : ruleConfig
-      const options = Array.isArray(ruleConfig) ? ruleConfig.slice(1) : []
-      
-      rules.set(ruleName, {
-        severity,
-        options,
-        source: getRuleSource(ruleName)
-      })
-    })
-  }
-  
-  return rules
-}
+// Removed unused utility functions - they were for the old config-based approach
 
-function getRuleSource(ruleName: string): string {
-  if (ruleName.startsWith('functype/')) return 'eslint-plugin-functype'
-  if (ruleName.startsWith('functional/')) return 'eslint-plugin-functional'
-  if (ruleName.startsWith('@typescript-eslint/')) return '@typescript-eslint/eslint-plugin'
-  return 'eslint (core)'
-}
-
-function getSeverityColor(severity: RuleSeverity): keyof typeof colors {
-  switch (severity) {
-    case 'error':
-    case 2:
-      return 'red'
-    case 'warn':
-    case 1:
-      return 'yellow'
-    case 'off':
-    case 0:
-      return 'cyan'
-    default:
-      return 'reset'
-  }
-}
-
-function formatSeverity(severity: RuleSeverity): string {
-  const severityMap: Record<string, string> = {
-    '0': 'off',
-    '1': 'warn', 
-    '2': 'error',
-    'off': 'off',
-    'warn': 'warn',
-    'error': 'error'
-  }
-  return severityMap[String(severity)] || String(severity)
-}
-
-function printRules(configName: string, rules: Map<string, RuleData>): void {
-  console.log(colorize(`\n📋 ${configName} Configuration Rules:`, 'bright'))
-  console.log(colorize('='.repeat(50), 'blue'))
-  
-  // Group rules by source
-  const rulesBySource = new Map<string, Map<string, RuleData>>()
-  rules.forEach((ruleData, ruleName) => {
-    const source = ruleData.source
-    if (!rulesBySource.has(source)) {
-      rulesBySource.set(source, new Map())
-    }
-    rulesBySource.get(source)!.set(ruleName, ruleData)
-  })
-  
-  // Print rules grouped by source
-  rulesBySource.forEach((sourceRules, source) => {
-    console.log(colorize(`\n📦 ${source}:`, 'magenta'))
-    
-    sourceRules.forEach((ruleData, ruleName) => {
-      const shortName = ruleName.replace(/^.*\//, '')
-      const severity = formatSeverity(ruleData.severity)
-      const severityColored = colorize(`[${severity.toUpperCase()}]`, getSeverityColor(ruleData.severity))
-      const hasOptions = ruleData.options && ruleData.options.length > 0
-      const optionsText = hasOptions ? colorize(' (with options)', 'cyan') : ''
-      
-      console.log(`  ${severityColored} ${colorize(shortName, 'green')}${optionsText}`)
-      
-      if (hasOptions && process.argv.includes('--verbose')) {
-        console.log(`    ${colorize('Options:', 'cyan')} ${JSON.stringify(ruleData.options)}`)
-      }
-    })
-  })
-}
-
-function printSummary(configs: LoadedConfig[]): void {
-  console.log(colorize('\n📊 Summary:', 'bright'))
-  console.log(colorize('='.repeat(30), 'blue'))
-  
-  configs.forEach(({name, rules}) => {
-    const totalRules = rules.size
-    const errorRules = Array.from(rules.values()).filter(r => 
-      r.severity === 'error' || r.severity === 2
-    ).length
-    const warnRules = Array.from(rules.values()).filter(r => 
-      r.severity === 'warn' || r.severity === 1
-    ).length
-    const offRules = Array.from(rules.values()).filter(r => 
-      r.severity === 'off' || r.severity === 0
-    ).length
-    
-    console.log(`\n${colorize(name, 'bright')}: ${totalRules} total rules`)
-    console.log(`  ${colorize('●', 'red')} ${errorRules} errors`)
-    console.log(`  ${colorize('●', 'yellow')} ${warnRules} warnings`)
-    console.log(`  ${colorize('●', 'cyan')} ${offRules} disabled`)
-  })
-}
-
-function printUsageInfo(): void {
-  console.log(colorize('\n💡 Usage Information:', 'bright'))
-  console.log(colorize('='.repeat(30), 'blue'))
-  console.log('\n📖 How to use these configurations:')
-  console.log('\n' + colorize('ESLint 8 (.eslintrc):', 'green'))
-  console.log('  extends: ["plugin:functype/recommended"]')
-  console.log('\n' + colorize('ESLint 9+ (flat config):', 'green'))
-  console.log('  Copy the rules from our documentation into your eslint.config.js')
-  console.log('\n' + colorize('Individual rules:', 'green'))
-  console.log('  You can enable any rule individually in your rules section')
-}
 
 function printDependencyStatus(result: ValidationResult): void {
   console.log(colorize('\n🔍 Dependency Status Check:', 'bright'))

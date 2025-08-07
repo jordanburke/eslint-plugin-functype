@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -39,21 +40,91 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
+    function containsThrowStatements(node: ASTNode): boolean {
+      if (!node) return false
+      
+      if (node.type === "ThrowStatement") return true
+      
+      // Recursively check child nodes
+      for (const key in node) {
+        if (key === "parent") continue // Avoid circular references
+        const child = node[key]
+        if (Array.isArray(child)) {
+          for (const item of child) {
+            if (item && typeof item === "object" && containsThrowStatements(item)) {
+              return true
+            }
+          }
+        } else if (child && typeof child === "object" && containsThrowStatements(child)) {
+          return true
+        }
+      }
+      
+      return false
+    }
+
+    function hasThrowStatementsOutsideCatch(node: ASTNode): boolean {
+      if (!node) return false
+      
+      if (node.type === "ThrowStatement") {
+        // Check if this throw is inside a catch block
+        let parent = node.parent
+        while (parent) {
+          if (parent.type === "CatchClause") return false
+          parent = parent.parent
+        }
+        return true
+      }
+      
+      // Skip catch blocks when recursing
+      if (node.type === "CatchClause") return false
+      
+      // Recursively check child nodes
+      for (const key in node) {
+        if (key === "parent") continue // Avoid circular references
+        const child = node[key]
+        if (Array.isArray(child)) {
+          for (const item of child) {
+            if (item && typeof item === "object" && hasThrowStatementsOutsideCatch(item)) {
+              return true
+            }
+          }
+        } else if (child && typeof child === "object" && hasThrowStatementsOutsideCatch(child)) {
+          return true
+        }
+      }
+      
+      return false
+    }
+
     return {
-      TryStatement(node: any) {
+      TryStatement(node: ASTNode) {
+        // Allow try/catch in test files
+        if (allowThrowInTests && isInTestFile()) return
+        
+        // Allow try/catch that re-throws in the catch block (even with logging)
+        if (node.handler && node.handler.body) {
+          const catchBody = node.handler.body.body
+          const hasRethrow = catchBody.some((stmt: ASTNode) => stmt.type === "ThrowStatement")
+          if (hasRethrow) return
+        }
+        
         context.report({
           node,
           messageId: "preferEitherOverTryCatch",
         })
       },
 
-      ThrowStatement(node: any) {
+      ThrowStatement(node: ASTNode) {
         // Allow throws in test files if configured
         if (allowThrowInTests && isInTestFile()) return
 
         // Allow re-throwing in catch blocks (common pattern)
-        const parent = node.parent
-        if (parent && parent.type === "CatchClause") return
+        let parent = node.parent
+        while (parent) {
+          if (parent.type === "CatchClause") return
+          parent = parent.parent
+        }
 
         context.report({
           node,
@@ -61,31 +132,33 @@ const rule: Rule.RuleModule = {
         })
       },
 
-      FunctionDeclaration(node: any) {
-        if (!node.body || !node.body.body) return
+      FunctionDeclaration(node: ASTNode) {
+        // Allow functions in test files
+        if (allowThrowInTests && isInTestFile()) return
+        
+        if (!node.body) return
 
-        // Check if function contains throw statements
-        const hasThrow = node.body.body.some((stmt: any) => {
-          return stmt.type === "ThrowStatement" ||
-                 (stmt.type === "ExpressionStatement" && 
-                  stmt.expression?.type === "CallExpression" &&
-                  stmt.expression?.callee?.name === "throw")
-        })
-
-        if (hasThrow && !allowThrowInTests || !isInTestFile()) {
+        // Only report function-level errors if there are throws NOT in catch blocks
+        // (throws in catch blocks are handled by ThrowStatement rule)
+        const hasThrowsNotInCatch = hasThrowStatementsOutsideCatch(node.body)
+        if (hasThrowsNotInCatch) {
           const returnType = node.returnType?.typeAnnotation
-          if (returnType && !context.getSourceCode().getText(returnType).includes("Either")) {
+          if (returnType) {
             const sourceCode = context.getSourceCode()
-            const returnTypeText = returnType ? sourceCode.getText(returnType) : "unknown"
+            const returnTypeText = sourceCode.getText(returnType)
             
-            context.report({
-              node: node.id || node,
-              messageId: "preferEitherReturn",
-              data: { type: returnTypeText },
-            })
+            // Don't report if already using Either
+            if (!returnTypeText.includes("Either")) {
+              context.report({
+                node: node.id || node,
+                messageId: "preferEitherReturn",
+                data: { type: returnTypeText },
+              })
+            }
           }
         }
       },
+
     }
   },
 }

@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -36,14 +37,14 @@ const rule: Rule.RuleModule = {
     const checkArrayMethods = options.checkArrayMethods !== false
     const checkForLoops = options.checkForLoops !== false
 
-    function isTransformationLoop(node: any): boolean {
+    function isTransformationLoop(node: ASTNode): boolean {
       if (!node.body || node.body.type !== "BlockStatement") return false
       
       const statements = node.body.body
       if (statements.length === 0) return false
 
       // Look for patterns like: newArray.push(transform(item))
-      return statements.some((stmt: any) => {
+      return statements.some((stmt: ASTNode) => {
         if (stmt.type === "ExpressionStatement" && 
             stmt.expression.type === "CallExpression") {
           const call = stmt.expression
@@ -54,7 +55,7 @@ const rule: Rule.RuleModule = {
       })
     }
 
-    function isSimplePropertyAccess(node: any): boolean {
+    function isSimplePropertyAccess(node: ASTNode): boolean {
       // Check for patterns like: items.forEach(item => console.log(item.name))
       // These could often be: items.map(item => item.name)
       if (node.type === "CallExpression" &&
@@ -75,7 +76,7 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      ForStatement(node: any) {
+      ForStatement(node: ASTNode) {
         if (!checkForLoops) return
 
         if (isTransformationLoop(node)) {
@@ -87,7 +88,7 @@ const rule: Rule.RuleModule = {
         }
       },
 
-      ForInStatement(node: any) {
+      ForInStatement(node: ASTNode) {
         if (!checkForLoops) return
 
         if (isTransformationLoop(node)) {
@@ -99,7 +100,7 @@ const rule: Rule.RuleModule = {
         }
       },
 
-      ForOfStatement(node: any) {
+      ForOfStatement(node: ASTNode) {
         if (!checkForLoops) return
 
         if (isTransformationLoop(node)) {
@@ -111,7 +112,7 @@ const rule: Rule.RuleModule = {
         }
       },
 
-      CallExpression(node: any) {
+      CallExpression(node: ASTNode) {
         if (!checkArrayMethods) return
 
         // Check for forEach that could be map

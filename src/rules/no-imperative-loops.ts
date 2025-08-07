@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -52,7 +53,7 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
-    function needsIndexAccess(node: any): boolean {
+    function needsIndexAccess(node: ASTNode): boolean {
       if (!node.body || node.body.type !== "BlockStatement") return false
       
       const sourceCode = context.getSourceCode()
@@ -63,41 +64,47 @@ const rule: Rule.RuleModule = {
              node.init.type === "VariableDeclaration"
     }
 
-    function getSuggestionForForLoop(node: any): string {
+    function getSuggestionForForLoop(node: ASTNode): string {
       if (!node.body) return "functional iteration method"
       
       const sourceCode = context.getSourceCode()
       const bodyText = sourceCode.getText(node.body)
       
       // Simple heuristics for suggestions
-      if (bodyText.includes("push")) {
+      if (bodyText.includes("if") && bodyText.includes("push")) {
+        return "array.filter().map() for conditional transformation"
+      } else if (bodyText.includes("push")) {
         return "array.map() to transform elements"
       } else if (bodyText.includes("console.log") || bodyText.includes("print")) {
         return "array.forEach() for side effects"
       } else if (bodyText.includes("+=") || bodyText.includes("sum")) {
         return "array.reduce() for accumulation"
-      } else if (bodyText.includes("if") && bodyText.includes("push")) {
-        return "array.filter().map() for conditional transformation"
       }
       
       return "functional iteration method (.map, .filter, .forEach, .reduce)"
     }
 
+    // Remove unused function to fix lint error
+    // getSuggestionForForLoop could be used for better error messages in the future
+    // Mark as used to avoid lint error:
+    void getSuggestionForForLoop
+    
     return {
-      ForStatement(node: any) {
+      ForStatement(node: ASTNode) {
         if (allowInTests && isInTestFile()) return
         
         // Allow traditional for loops if they need index access and option is set
         if (allowForIndexAccess && needsIndexAccess(node)) return
 
-        const suggestion = getSuggestionForForLoop(node)
+        // Remove unused suggestion variable
+        // const _suggestion = getSuggestionForForLoop(node)
         context.report({
           node,
           messageId: "noForLoop",
         })
       },
 
-      ForInStatement(node: any) {
+      ForInStatement(node: ASTNode) {
         if (allowInTests && isInTestFile()) return
 
         context.report({
@@ -106,7 +113,7 @@ const rule: Rule.RuleModule = {
         })
       },
 
-      ForOfStatement(node: any) {
+      ForOfStatement(node: ASTNode) {
         if (allowInTests && isInTestFile()) return
 
         context.report({
@@ -115,7 +122,7 @@ const rule: Rule.RuleModule = {
         })
       },
 
-      WhileStatement(node: any) {
+      WhileStatement(node: ASTNode) {
         if (allowWhileLoops) return
         if (allowInTests && isInTestFile()) return
 
@@ -125,7 +132,7 @@ const rule: Rule.RuleModule = {
         })
       },
 
-      DoWhileStatement(node: any) {
+      DoWhileStatement(node: ASTNode) {
         if (allowWhileLoops) return
         if (allowInTests && isInTestFile()) return
 

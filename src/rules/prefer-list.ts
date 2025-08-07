@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -45,7 +46,7 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      TSArrayType(node: any) {
+      TSArrayType(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
 
         const sourceCode = context.getSourceCode()
@@ -65,11 +66,18 @@ const rule: Rule.RuleModule = {
         })
       },
 
-      TSTypeReference(node: any) {
+      TSTypeReference(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
 
         const sourceCode = context.getSourceCode()
-        const typeName = sourceCode.getText(node.typeName)
+        
+        // Get type name - handle both simple identifiers and member expressions
+        let typeName = ""
+        if (node.typeName.type === "Identifier") {
+          typeName = node.typeName.name
+        } else {
+          typeName = sourceCode.getText(node.typeName)
+        }
 
         // Handle Array<T> syntax
         if (typeName === "Array" && node.typeParameters?.params?.[0]) {
@@ -111,11 +119,30 @@ const rule: Rule.RuleModule = {
         }
       },
 
-      ArrayExpression(node: any) {
+      ArrayExpression(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
 
         // Only flag non-empty arrays to avoid noise
         if (node.elements.length === 0) return
+
+        // Don't flag array literals that are already part of a type annotation context
+        // (those should be handled by the type checking rules)
+        let parent = node.parent
+        let hasTypeAnnotation = false
+        while (parent) {
+          if (parent.type === "VariableDeclarator" && parent.id?.typeAnnotation) {
+            // Skip array literal if there's already a type annotation that would be flagged
+            hasTypeAnnotation = true
+            break
+          }
+          if (parent.type === "TSTypeAnnotation") {
+            hasTypeAnnotation = true
+            break
+          }
+          parent = parent.parent
+        }
+        
+        if (hasTypeAnnotation) return
 
         context.report({
           node,
@@ -123,6 +150,10 @@ const rule: Rule.RuleModule = {
           fix(fixer) {
             const sourceCode = context.getSourceCode()
             const elements = sourceCode.getText(node)
+            // Avoid infinite loop by checking if we're already wrapped in List.from
+            if (elements.startsWith("List.from(")) {
+              return null
+            }
             return fixer.replaceText(node, `List.from(${elements})`)
           },
         })

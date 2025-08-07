@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -31,7 +32,7 @@ const rule: Rule.RuleModule = {
     const options = context.options[0] || {}
     const minComplexity = options.minComplexity || 2
 
-    function isMonadicCheck(node: any): { isMonadic: boolean; type: string } {
+    function isMonadicCheck(node: ASTNode): { isMonadic: boolean; type: string } {
       const sourceCode = context.getSourceCode()
       const text = sourceCode.getText(node)
 
@@ -56,12 +57,24 @@ const rule: Rule.RuleModule = {
           // This might be checking an Option that hasn't been properly typed
           return { isMonadic: true, type: "Option" }
         }
+        
+        // Check for == or != with undefined
+        if ((node.operator === "==" || node.operator === "!=" || node.operator === "===" || node.operator === "!==")) {
+          const leftIsUndefined = (node.left.type === "Identifier" && node.left.name === "undefined") ||
+                                 (node.left.type === "Literal" && node.left.value === undefined)
+          const rightIsUndefined = (node.right.type === "Identifier" && node.right.name === "undefined") ||
+                                  (node.right.type === "Literal" && node.right.value === undefined)
+          
+          if (leftIsUndefined || rightIsUndefined) {
+            return { isMonadic: true, type: "Option" }
+          }
+        }
       }
 
       return { isMonadic: false, type: "" }
     }
 
-    function analyzeIfStatement(node: any) {
+    function analyzeIfStatement(node: ASTNode) {
       const test = node.test
       const monadicInfo = isMonadicCheck(test)
       
@@ -89,11 +102,11 @@ const rule: Rule.RuleModule = {
     }
 
     return {
-      IfStatement(node: any) {
+      IfStatement(node: ASTNode) {
         analyzeIfStatement(node)
       },
 
-      ConditionalExpression(node: any) {
+      ConditionalExpression(node: ASTNode) {
         const monadicInfo = isMonadicCheck(node.test)
         if (monadicInfo.isMonadic) {
           context.report({
