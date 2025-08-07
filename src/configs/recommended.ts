@@ -1,3 +1,20 @@
+import { validatePeerDependencies, createValidationError, shouldValidateDependencies } from '../utils/dependency-validator'
+
+// Validate peer dependencies on config load
+if (shouldValidateDependencies()) {
+  const result = validatePeerDependencies()
+  if (!result.isValid) {
+    throw createValidationError(result)
+  }
+  
+  // Log warnings for missing optional dependencies
+  if (result.warnings.length > 0) {
+    console.warn('\n⚠️  eslint-plugin-functype warnings:')
+    result.warnings.forEach(warning => console.warn(`   ${warning}`))
+    console.warn('')
+  }
+}
+
 // ESLint 9.x Flat Config Format
 // Complete functional TypeScript config with formatting and import organization
 export default {

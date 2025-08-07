@@ -2,6 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { validatePeerDependencies, type ValidationResult } from '../utils/dependency-validator'
 
 // Types for better type safety
 type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2
@@ -182,19 +183,73 @@ function printUsageInfo(): void {
   console.log('  You can enable any rule individually in your rules section')
 }
 
+function printDependencyStatus(result: ValidationResult): void {
+  console.log(colorize('\n🔍 Dependency Status Check:', 'bright'))
+  console.log(colorize('='.repeat(40), 'blue'))
+  
+  // Show available dependencies
+  if (result.available.length > 0) {
+    console.log(colorize('\n✅ Available:', 'green'))
+    result.available.forEach(dep => {
+      const icon = dep.required ? '🔧' : '🔌'
+      console.log(`  ${icon} ${colorize(dep.name, 'green')} - ${dep.description}`)
+    })
+  }
+  
+  // Show missing dependencies
+  if (result.missing.length > 0) {
+    console.log(colorize('\n❌ Missing:', 'red'))
+    result.missing.forEach(dep => {
+      const icon = dep.required ? '⚠️ ' : '💡'
+      const color = dep.required ? 'red' : 'yellow'
+      console.log(`  ${icon} ${colorize(dep.name, color)} - ${dep.description}`)
+    })
+    
+    if (result.installCommand) {
+      console.log(colorize('\n📦 Install missing dependencies:', 'bright'))
+      console.log(`   ${colorize(result.installCommand, 'cyan')}`)
+    }
+  }
+  
+  // Show warnings
+  if (result.warnings.length > 0) {
+    console.log(colorize('\n⚠️  Warnings:', 'yellow'))
+    result.warnings.forEach(warning => console.log(`   ${warning}`))
+  }
+  
+  // Overall status
+  const status = result.isValid ? '✅ Ready to use' : '❌ Configuration will fail'
+  const statusColor = result.isValid ? 'green' : 'red'
+  console.log(colorize(`\n${status}`, statusColor))
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
   const showHelp = args.includes('--help') || args.includes('-h')
   const showUsage = args.includes('--usage') || args.includes('-u')
+  const checkDeps = args.includes('--check-deps') || args.includes('--check')
   
   if (showHelp) {
     console.log(colorize('📋 ESLint Plugin Functype - Rule Lister', 'bright'))
     console.log('\nUsage: pnpm run list-rules [options]')
     console.log('\nOptions:')
-    console.log('  --verbose, -v    Show rule options')
-    console.log('  --usage, -u      Show usage examples')  
-    console.log('  --help, -h       Show this help message')
+    console.log('  --verbose, -v      Show rule options')
+    console.log('  --usage, -u        Show usage examples')
+    console.log('  --check-deps       Check peer dependency status')  
+    console.log('  --help, -h         Show this help message')
     console.log('\nThis command lists all rules configured in the functype plugin configurations.')
+    return
+  }
+  
+  // Handle dependency check
+  if (checkDeps) {
+    console.log(colorize('🔧 ESLint Plugin Functype - Dependency Check', 'bright'))
+    const result = validatePeerDependencies()
+    printDependencyStatus(result)
+    
+    if (!result.isValid) {
+      process.exit(1)
+    }
     return
   }
   

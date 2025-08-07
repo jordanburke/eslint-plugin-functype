@@ -169,6 +169,9 @@ pnpm run list-rules:verbose
 # Show usage examples
 pnpm run list-rules:usage
 
+# Check peer dependency status
+pnpm run check-deps
+
 # Show help
 pnpm run cli:help
 ```
@@ -207,4 +210,22 @@ pnpm run lint
 
 # List rules during development  
 pnpm run list-rules
+```
+
+## Troubleshooting
+
+### Missing Peer Dependencies
+
+If you see errors like `Definition for rule '@typescript-eslint/no-explicit-any' was not found`, you're missing peer dependencies.
+
+**Quick Check:**
+```bash
+pnpm run check-deps
+```
+
+This will show you exactly which dependencies are missing and provide the installation command.
+
+**Manual Installation:**
+```bash
+pnpm add -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-functional eslint-plugin-prettier eslint-plugin-simple-import-sort prettier
 ```

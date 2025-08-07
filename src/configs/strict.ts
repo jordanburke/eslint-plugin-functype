@@ -1,6 +1,7 @@
 import recommended from "./recommended"
 
 // ESLint 9.x Flat Config Format - Strict rules overlay
+// Note: Peer dependency validation is inherited from recommended config
 export default {
   ...recommended,
   name: "functype/strict",
