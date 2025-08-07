@@ -40,28 +40,6 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
-    function containsThrowStatements(node: ASTNode): boolean {
-      if (!node) return false
-      
-      if (node.type === "ThrowStatement") return true
-      
-      // Recursively check child nodes
-      for (const key in node) {
-        if (key === "parent") continue // Avoid circular references
-        const child = node[key]
-        if (Array.isArray(child)) {
-          for (const item of child) {
-            if (item && typeof item === "object" && containsThrowStatements(item)) {
-              return true
-            }
-          }
-        } else if (child && typeof child === "object" && containsThrowStatements(child)) {
-          return true
-        }
-      }
-      
-      return false
-    }
 
     function hasThrowStatementsOutsideCatch(node: ASTNode): boolean {
       if (!node) return false

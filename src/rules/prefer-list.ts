@@ -45,6 +45,36 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
+    function findTypeParameter(node: ASTNode, sourceCode: ReturnType<typeof context.getSourceCode>): string | null {
+      // Look for TSTypeParameterInstantiation child
+      function findInNode(n: ASTNode): string | null {
+        if (n.type === "TSTypeParameterInstantiation" && n.params && n.params[0]) {
+          return sourceCode.getText(n.params[0])
+        }
+        
+        // Recursively search child nodes
+        for (const key in n) {
+          if (key === "parent") continue
+          const child = n[key]
+          if (Array.isArray(child)) {
+            for (const item of child) {
+              if (item && typeof item === "object" && item.type) {
+                const result = findInNode(item)
+                if (result) return result
+              }
+            }
+          } else if (child && typeof child === "object" && child.type) {
+            const result = findInNode(child)
+            if (result) return result
+          }
+        }
+        
+        return null
+      }
+      
+      return findInNode(node)
+    }
+
     return {
       TSArrayType(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
@@ -73,15 +103,18 @@ const rule: Rule.RuleModule = {
         
         // Get type name - handle both simple identifiers and member expressions
         let typeName = ""
-        if (node.typeName.type === "Identifier") {
+        if (node.typeName && node.typeName.type === "Identifier") {
           typeName = node.typeName.name
-        } else {
+        } else if (node.typeName) {
           typeName = sourceCode.getText(node.typeName)
+        } else {
+          return // No type name found
         }
 
         // Handle Array<T> syntax
-        if (typeName === "Array" && node.typeParameters?.params?.[0]) {
-          const typeParam = sourceCode.getText(node.typeParameters.params[0])
+        if (typeName === "Array") {
+          // Look for type parameters in child nodes
+          const typeParam = findTypeParameter(node, sourceCode)
           const fullType = sourceCode.getText(node)
 
           // Skip if already readonly
@@ -91,29 +124,29 @@ const rule: Rule.RuleModule = {
             node,
             messageId: "preferList",
             data: {
-              type: typeParam,
+              type: typeParam || "T",
               arrayType: fullType,
             },
             fix(fixer) {
-              return fixer.replaceText(node, `List<${typeParam}>`)
+              return fixer.replaceText(node, `List<${typeParam || "T"}>`)
             },
           })
         }
 
         // Handle ReadonlyArray<T> - suggest List even if allowing readonly arrays
-        if (typeName === "ReadonlyArray" && node.typeParameters?.params?.[0]) {
-          const typeParam = sourceCode.getText(node.typeParameters.params[0])
+        if (typeName === "ReadonlyArray") {
+          const typeParam = findTypeParameter(node, sourceCode)
           const fullType = sourceCode.getText(node)
 
           context.report({
             node,
             messageId: "preferList",
             data: {
-              type: typeParam,
+              type: typeParam || "T",
               arrayType: fullType,
             },
             fix(fixer) {
-              return fixer.replaceText(node, `List<${typeParam}>`)
+              return fixer.replaceText(node, `List<${typeParam || "T"}>`)
             },
           })
         }
@@ -125,10 +158,30 @@ const rule: Rule.RuleModule = {
         // Only flag non-empty arrays to avoid noise
         if (node.elements.length === 0) return
 
+        // Don't flag arrays that are already arguments to List.from()
+        let parent = node.parent
+        if (parent && parent.type === "CallExpression" && 
+            parent.callee.type === "MemberExpression" &&
+            parent.callee.object.type === "Identifier" &&
+            parent.callee.object.name === "List" &&
+            parent.callee.property.name === "from") {
+          return
+        }
+
+        // Don't flag nested array literals - only flag the outermost one
+        // Check if this array is inside another array literal
+        parent = node.parent
+        while (parent) {
+          if (parent.type === "ArrayExpression") {
+            return // Skip nested arrays, let the outer one handle it
+          }
+          parent = parent.parent
+        }
+
         // Don't flag array literals that are already part of a type annotation context
         // (those should be handled by the type checking rules)
-        let parent = node.parent
         let hasTypeAnnotation = false
+        parent = node.parent
         while (parent) {
           if (parent.type === "VariableDeclarator" && parent.id?.typeAnnotation) {
             // Skip array literal if there's already a type annotation that would be flagged
@@ -150,10 +203,6 @@ const rule: Rule.RuleModule = {
           fix(fixer) {
             const sourceCode = context.getSourceCode()
             const elements = sourceCode.getText(node)
-            // Avoid infinite loop by checking if we're already wrapped in List.from
-            if (elements.startsWith("List.from(")) {
-              return null
-            }
             return fixer.replaceText(node, `List.from(${elements})`)
           },
         })

@@ -123,7 +123,7 @@ const rule: Rule.RuleModule = {
 
     return {
       CallExpression(node: ASTNode) {
-        // Check for .map().flat() pattern
+        // Check for .map().flat() pattern first (highest priority)
         if (isMapFollowedByFlat(node)) {
           const sourceCode = context.getSourceCode()
           
@@ -141,17 +141,10 @@ const rule: Rule.RuleModule = {
               return fixer.replaceText(node, flatMapText)
             },
           })
+          return // Don't check other patterns if we found .map().flat()
         }
 
-        // Check for nested maps that return arrays
-        if (checkNestedMaps && isNestedMapReturningArrays(node)) {
-          context.report({
-            node,
-            messageId: "preferFlatMapNested",
-          })
-        }
-
-        // Check for chained maps where intermediate results are arrays
+        // Check for chained maps where intermediate results are arrays (highest priority after map().flat())
         if (node.callee.type === "MemberExpression" &&
             node.callee.property.name === "map") {
           
@@ -167,8 +160,41 @@ const rule: Rule.RuleModule = {
                 node: object, // Report on the first map call
                 messageId: "preferFlatMapChain",
               })
+              return // Don't check other patterns for this chain
             }
           }
+        }
+
+        // Check for nested maps that return arrays (but not if they're part of map().flat() or chains)
+        if (checkNestedMaps && isNestedMapReturningArrays(node)) {
+          // Don't flag if this map is immediately followed by flat()
+          if (node.parent && 
+              node.parent.type === "MemberExpression" &&
+              node.parent.parent &&
+              node.parent.parent.type === "CallExpression" &&
+              node.parent.property.name === "flat") {
+            return // Skip - this will be handled by the map().flat() rule
+          }
+
+          // Don't flag if this map is part of a chain (either as first or second map)
+          const object = node.callee?.object
+          if (object?.type === "CallExpression" &&
+              object.callee?.type === "MemberExpression" &&
+              object.callee?.property?.name === "map") {
+            return // Skip - this is part of a chain
+          }
+          
+          // Check if this map feeds into another map
+          if (node.parent?.type === "MemberExpression" &&
+              node.parent.parent?.type === "CallExpression" &&
+              node.parent.parent.callee?.property?.name === "map") {
+            return // Skip - this feeds into a chain
+          }
+          
+          context.report({
+            node,
+            messageId: "preferFlatMapNested",
+          })
         }
       },
     }

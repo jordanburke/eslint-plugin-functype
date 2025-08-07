@@ -80,6 +80,10 @@ const rule: Rule.RuleModule = {
       
       if (!monadicInfo.isMonadic) return
 
+      // Don't analyze if this is part of a larger if/else chain
+      // (only analyze the outermost if statement)
+      if (node.parent && node.parent.type === "IfStatement") return
+
       // Count the complexity (if/else if/else chain)
       let complexity = 1
       let current = node
