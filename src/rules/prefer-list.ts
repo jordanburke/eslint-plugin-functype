@@ -1,5 +1,6 @@
 import type { Rule } from "eslint"
 import type { ASTNode } from "../types/ast"
+import { getFunctypeImports, isFunctypeCall } from "../utils/functype-detection"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -37,6 +38,9 @@ const rule: Rule.RuleModule = {
     const allowArraysInTests = options.allowArraysInTests !== false
     const allowReadonlyArrays = options.allowReadonlyArrays !== false
 
+    // Get functype imports if available (but still apply rule even without explicit import)
+    const functypeImports = getFunctypeImports(context)
+
     function isInTestFile() {
       const filename = context.getFilename()
       return /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
@@ -45,7 +49,7 @@ const rule: Rule.RuleModule = {
              filename.includes("/tests/")
     }
 
-    function findTypeParameter(node: ASTNode, sourceCode: ReturnType<typeof context.getSourceCode>): string | null {
+    function findTypeParameter(node: ASTNode, sourceCode: typeof context.sourceCode): string | null {
       // Look for TSTypeParameterInstantiation child
       function findInNode(n: ASTNode): string | null {
         if (n.type === "TSTypeParameterInstantiation" && n.params && n.params[0]) {
@@ -79,7 +83,7 @@ const rule: Rule.RuleModule = {
       TSArrayType(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
 
-        const sourceCode = context.getSourceCode()
+        const sourceCode = context.sourceCode
         const elementType = sourceCode.getText(node.elementType)
         const fullType = sourceCode.getText(node)
 
@@ -99,7 +103,7 @@ const rule: Rule.RuleModule = {
       TSTypeReference(node: ASTNode) {
         if (allowArraysInTests && isInTestFile()) return
 
-        const sourceCode = context.getSourceCode()
+        const sourceCode = context.sourceCode
         
         // Get type name - handle both simple identifiers and member expressions
         let typeName = ""
@@ -158,13 +162,18 @@ const rule: Rule.RuleModule = {
         // Only flag non-empty arrays to avoid noise
         if (node.elements.length === 0) return
 
-        // Don't flag arrays that are already arguments to List.from()
+        // Don't flag arrays that are already arguments to List.from() or other functype calls
         let parent = node.parent
+        if (parent && isFunctypeCall(parent, functypeImports)) {
+          return
+        }
+        
+        // Additional specific check for List.from/List.of patterns
         if (parent && parent.type === "CallExpression" && 
             parent.callee.type === "MemberExpression" &&
             parent.callee.object.type === "Identifier" &&
             parent.callee.object.name === "List" &&
-            parent.callee.property.name === "from") {
+            ["from", "of"].includes(parent.callee.property.name)) {
           return
         }
 
@@ -201,7 +210,7 @@ const rule: Rule.RuleModule = {
           node,
           messageId: "preferListLiteral",
           fix(fixer) {
-            const sourceCode = context.getSourceCode()
+            const sourceCode = context.sourceCode
             const elements = sourceCode.getText(node)
             return fixer.replaceText(node, `List.from(${elements})`)
           },

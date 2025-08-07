@@ -45,6 +45,9 @@ importers:
       eslint-plugin-simple-import-sort:
         specifier: ^12.1.1
         version: 12.1.1(eslint@9.32.0)
+      functype:
+        specifier: ^0.9.4
+        version: 0.9.4
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1003,6 +1006,9 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
+  functype@0.9.4:
+    resolution: {integrity: sha512-rkJVmnG2a6lu7ABklsTA44plG48dWSXWFeGxfB+VdlLE1Bq24NYTfHgUQo9eEch7SYwp57EEWplGchSFjD4eAg==}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -1318,6 +1324,10 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
+
+  safe-stable-stringify@2.5.0:
+    resolution: {integrity: sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==}
+    engines: {node: '>=10'}
 
   semver@7.7.2:
     resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
@@ -2445,6 +2455,10 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
+  functype@0.9.4:
+    dependencies:
+      safe-stable-stringify: 2.5.0
+
   glob-parent@5.1.2:
     dependencies:
       is-glob: 4.0.3
@@ -2736,6 +2750,8 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
+
+  safe-stable-stringify@2.5.0: {}
 
   semver@7.7.2: {}
 

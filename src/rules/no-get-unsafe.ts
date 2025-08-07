@@ -50,7 +50,7 @@ const rule: Rule.RuleModule = {
       // more sophisticated type checking using TypeScript's type checker
       if (!node) return false
       
-      const sourceCode = context.getSourceCode()
+      const sourceCode = context.sourceCode
       
       // Check for common patterns that indicate monadic types
       const text = sourceCode.getText(node)

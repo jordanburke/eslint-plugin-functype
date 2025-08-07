@@ -1,5 +1,6 @@
 import type { Rule } from "eslint"
 import type { ASTNode } from "../types/ast"
+import { getFunctypeImports, isFunctypeType, isAlreadyUsingFunctype } from "../utils/functype-detection"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -33,6 +34,9 @@ const rule: Rule.RuleModule = {
     // Remove unused variable
     // const _allowNullableIntersections = options.allowNullableIntersections || false
 
+    // Get functype imports if available (but still apply rule even without explicit import)
+    const functypeImports = getFunctypeImports(context)
+
     return {
       TSUnionType(node: ASTNode) {
         if (!node.types || node.types.length < 2) return
@@ -48,22 +52,30 @@ const rule: Rule.RuleModule = {
         )
 
         if (nonNullTypes.length === 1) {
-          const sourceCode = context.getSourceCode()
-          const nonNullType = sourceCode.getText(nonNullTypes[0])
+          const nonNullType = nonNullTypes[0]
+          
+          // Skip if it's already an Option type or other functype type
+          if (isFunctypeType(nonNullType, functypeImports)) return
+          
+          // Skip if we're already in a functype context
+          if (isAlreadyUsingFunctype(node, functypeImports)) return
+          
+          const sourceCode = context.sourceCode
+          const nonNullTypeText = sourceCode.getText(nonNullType)
           const fullType = sourceCode.getText(node)
-
-          // Skip if it's already an Option type
-          if (nonNullType.startsWith("Option<")) return
-
+          
+          // Skip if it's already an Option type (fallback check)
+          if (nonNullTypeText.startsWith("Option<")) return
+          
           context.report({
             node,
             messageId: "preferOption",
             data: {
-              type: nonNullType,
+              type: nonNullTypeText,
               nullable: fullType,
             },
             fix(fixer) {
-              return fixer.replaceText(node, `Option<${nonNullType}>`)
+              return fixer.replaceText(node, `Option<${nonNullTypeText}>`)
             },
           })
         }

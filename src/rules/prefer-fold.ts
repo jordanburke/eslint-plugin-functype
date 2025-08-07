@@ -33,7 +33,7 @@ const rule: Rule.RuleModule = {
     const minComplexity = options.minComplexity || 2
 
     function isMonadicCheck(node: ASTNode): { isMonadic: boolean; type: string } {
-      const sourceCode = context.getSourceCode()
+      const sourceCode = context.sourceCode
       const text = sourceCode.getText(node)
 
       // Check for common monadic type checks

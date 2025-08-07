@@ -56,7 +56,7 @@ const rule: Rule.RuleModule = {
     function needsIndexAccess(node: ASTNode): boolean {
       if (!node.body || node.body.type !== "BlockStatement") return false
       
-      const sourceCode = context.getSourceCode()
+      const sourceCode = context.sourceCode
       const bodyText = sourceCode.getText(node.body)
       
       // Look for array index access patterns like arr[i]
@@ -67,7 +67,7 @@ const rule: Rule.RuleModule = {
     function getSuggestionForForLoop(node: ASTNode): string {
       if (!node.body) return "functional iteration method"
       
-      const sourceCode = context.getSourceCode()
+      const sourceCode = context.sourceCode
       const bodyText = sourceCode.getText(node.body)
       
       // Simple heuristics for suggestions

@@ -122,7 +122,7 @@ const rule: Rule.RuleModule = {
         if (hasThrowsNotInCatch) {
           const returnType = node.returnType?.typeAnnotation
           if (returnType) {
-            const sourceCode = context.getSourceCode()
+            const sourceCode = context.sourceCode
             const returnTypeText = sourceCode.getText(returnType)
             
             // Don't report if already using Either

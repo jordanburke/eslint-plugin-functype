@@ -125,7 +125,7 @@ const rule: Rule.RuleModule = {
       CallExpression(node: ASTNode) {
         // Check for .map().flat() pattern first (highest priority)
         if (isMapFollowedByFlat(node)) {
-          const sourceCode = context.getSourceCode()
+          const sourceCode = context.sourceCode
           
           context.report({
             node,
