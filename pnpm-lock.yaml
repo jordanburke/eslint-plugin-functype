@@ -30,9 +30,6 @@ importers:
       eslint-plugin-functional:
         specifier: ^9.0.2
         version: 9.0.2(eslint@9.32.0)(typescript@5.9.2)
-      eslint-plugin-functype:
-        specifier: file:eslint-plugin-functype-1.1.0.tgz
-        version: file:eslint-plugin-functype-1.1.0.tgz(@typescript-eslint/eslint-plugin@8.39.0(@typescript-eslint/parser@8.39.0(eslint@9.32.0)(typescript@5.9.2))(eslint@9.32.0)(typescript@5.9.2))(@typescript-eslint/parser@8.39.0(eslint@9.32.0)(typescript@5.9.2))(eslint-plugin-functional@9.0.2(eslint@9.32.0)(typescript@5.9.2))(eslint@9.32.0)
       eslint-plugin-prettier:
         specifier: ^5.5.4
         version: 5.5.4(eslint@9.32.0)(prettier@3.6.2)
@@ -278,16 +275,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  eslint-plugin-functype@file:eslint-plugin-functype-1.1.0.tgz:
-    resolution: {integrity: sha512-jxpjgWMgb3pgPywMrOQS5X+gKZ2mLg3uaX5ZC8SFUz1tnZPGNZLrsn0PKS+AvYTjmZMgBMHfAuL06UTDl5UsAg==, tarball: file:eslint-plugin-functype-1.1.0.tgz}
-    version: 1.1.0
-    hasBin: true
-    peerDependencies:
-      '@typescript-eslint/eslint-plugin': ^8.38.0 || ^8.39.0 || ^9.0.0
-      '@typescript-eslint/parser': ^8.38.0 || ^8.39.0 || ^9.0.0
-      eslint: ^9.32.0
-      eslint-plugin-functional: ^9.0.2
 
   eslint-plugin-prettier@5.5.4:
     resolution: {integrity: sha512-swNtI95SToIz05YINMA6Ox5R057IMAmWZ26GqPxusAp1TZzj+IdY9tXNWWD3vkF/wEqydCONcwjTFpxybBqZsg==}
@@ -875,17 +862,6 @@ snapshots:
       ts-declaration-location: 1.0.7(typescript@5.9.2)
     optionalDependencies:
       typescript: 5.9.2
-    transitivePeerDependencies:
-      - supports-color
-
-  eslint-plugin-functype@file:eslint-plugin-functype-1.1.0.tgz(@typescript-eslint/eslint-plugin@8.39.0(@typescript-eslint/parser@8.39.0(eslint@9.32.0)(typescript@5.9.2))(eslint@9.32.0)(typescript@5.9.2))(@typescript-eslint/parser@8.39.0(eslint@9.32.0)(typescript@5.9.2))(eslint-plugin-functional@9.0.2(eslint@9.32.0)(typescript@5.9.2))(eslint@9.32.0):
-    dependencies:
-      '@eslint/eslintrc': 3.3.1
-      '@eslint/js': 9.32.0
-      '@typescript-eslint/eslint-plugin': 8.39.0(@typescript-eslint/parser@8.39.0(eslint@9.32.0)(typescript@5.9.2))(eslint@9.32.0)(typescript@5.9.2)
-      '@typescript-eslint/parser': 8.39.0(eslint@9.32.0)(typescript@5.9.2)
-      eslint: 9.32.0
-      eslint-plugin-functional: 9.0.2(eslint@9.32.0)(typescript@5.9.2)
     transitivePeerDependencies:
       - supports-color
 

@@ -48,7 +48,6 @@
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
     "eslint-plugin-functional": "^9.0.2",
-    "eslint-plugin-functype": "file:eslint-plugin-functype-1.1.0.tgz",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.6.2",
