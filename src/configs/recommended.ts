@@ -1,4 +1,8 @@
-import { validatePeerDependencies, createValidationError, shouldValidateDependencies } from '../utils/dependency-validator'
+import {
+  validatePeerDependencies,
+  createValidationError,
+  shouldValidateDependencies,
+} from "../utils/dependency-validator"
 
 // Validate peer dependencies on config load
 if (shouldValidateDependencies()) {
@@ -6,12 +10,12 @@ if (shouldValidateDependencies()) {
   if (!result.isValid) {
     throw createValidationError(result)
   }
-  
+
   // Log warnings for missing optional dependencies
   if (result.warnings.length > 0) {
-    console.warn('\n⚠️  eslint-plugin-functype warnings:')
-    result.warnings.forEach(warning => console.warn(`   ${warning}`))
-    console.warn('')
+    console.warn("\n⚠️  eslint-plugin-functype warnings:")
+    result.warnings.forEach((warning) => console.warn(`   ${warning}`))
+    console.warn("")
   }
 }
 
@@ -23,15 +27,22 @@ export default {
     // Core JavaScript immutability
     "prefer-const": "error",
     "no-var": "error",
-    
+
     // TypeScript functional patterns (when @typescript-eslint is available)
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
-      { argsIgnorePattern: "^_" }
+      {
+        argsIgnorePattern: "^_", // Only underscore-prefixed parameters
+        varsIgnorePattern: "^(_|[A-Z]$)", // Allow underscore-prefixed vars and single uppercase letters (interface generics)
+        caughtErrors: "all", // Require using catch block errors or prefix with _
+        caughtErrorsIgnorePattern: "^_", // Allow _error, _e, etc. in catch blocks
+        destructuredArrayIgnorePattern: "^_",
+        ignoreRestSiblings: true,
+        args: "after-used",
+      },
     ],
-    
     // Functional programming rules (when eslint-plugin-functional is available)
     "functional/no-let": "error",
     "functional/immutable-data": "warn",
@@ -39,12 +50,12 @@ export default {
     "functional/prefer-immutable-types": "off", // Too strict for most projects
     "functional/no-mixed-types": "off",
     "functional/functional-parameters": "off",
-    
+
     // Allow some flexibility
     "functional/no-conditional-statements": "off",
     "functional/no-expression-statements": "off",
     "functional/no-return-void": "off",
-    
+
     // Code formatting (when eslint-plugin-prettier is available)
     "prettier/prettier": [
       "error",
@@ -53,7 +64,7 @@ export default {
         usePrettierrc: true,
       },
     ],
-    
+
     // Import organization (when eslint-plugin-simple-import-sort is available)
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
