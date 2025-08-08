@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-eslint-plugin-functype is a curated ESLint configuration bundle for functional TypeScript programming. This plugin combines and configures rules from established ESLint plugins rather than creating custom rules.
+eslint-plugin-functype is a custom ESLint plugin providing 8 rules for functional TypeScript programming with functype library integration. This plugin creates custom ESLint rules rather than composing existing ones, providing precise TypeScript AST analysis and smart auto-fixing.
 
 ## Commands
 
 ### Build and Development
 ```bash
-# Build with tsup (fast, esbuild-powered)
+# Build with tsup (includes typecheck)
 pnpm run build
 
 # Watch mode for development
@@ -19,89 +19,169 @@ pnpm run build:watch
 # Lint the codebase
 pnpm run lint
 
-# Build and run rule list CLI
-pnpm run build && pnpm run list-rules
+# Type check only
+pnpm run typecheck
+
+# Run all quality checks
+pnpm run check
+```
+
+### Testing
+```bash
+# Run all tests (99 tests across 10 suites)
+pnpm test
+
+# Watch mode
+pnpm test:watch
+
+# Test UI
+pnpm test:ui
+
+# Coverage report
+pnpm test:coverage
+
+# Run single test file
+pnpm test tests/rules/prefer-option.test.ts
 ```
 
 ### CLI Tools
 ```bash
-# List all configured rules
-pnpm run list-rules
+# List all rules (requires build first)
+pnpm run build && pnpm run list-rules
 
-# Show rule options/configuration
+# Show rule configurations
 pnpm run list-rules:verbose  
 
 # Show usage examples
 pnpm run list-rules:usage
 
-# Show help
+# Check peer dependencies
+pnpm run check-deps
+
+# Show CLI help
 pnpm run cli:help
 ```
 
-### Package Management
+### Publishing
 ```bash
-# Install dependencies
-pnpm install
-
-# Prepare package for publishing
-pnpm run prepare
+# Prepare for publishing (runs full quality pipeline)
+pnpm run prepublishOnly
 ```
 
 ## Architecture
 
 ### Core Philosophy
-This plugin follows **composition over recreation** - it curates and combines existing ESLint rules rather than creating new ones. This approach provides:
-- Less maintenance burden
-- Better rule quality and edge case handling
-- Community-driven improvements
+This plugin provides **custom ESLint rules** specifically designed for functional TypeScript patterns. Unlike rule composition approaches, custom rules offer:
+- Precise TypeScript AST analysis for complex patterns
+- Context-aware auto-fixing that maintains code intent  
+- Built-in functype library integration and detection
+- Single-pass analysis for better performance
 
-### Package Structure
-- **`src/index.ts`**: Main plugin entry point, exports configurations
-- **`src/configs/`**: ESLint configuration presets (recommended, strict)
-- **`src/cli/`**: Command-line tools for rule inspection
-- **`dist/`**: Compiled JavaScript output
+### Plugin Structure
+- **`src/index.ts`**: Main plugin entry point, exports rules object for ESLint 9+ flat config
+- **`src/rules/`**: 8 custom ESLint rules, each in separate files
+- **`src/utils/functype-detection.ts`**: Core utility for detecting functype library usage
+- **`src/types/ast.ts`**: TypeScript AST type definitions
+- **`src/cli/list-rules.ts`**: CLI tool for rule inspection
+- **`dist/`**: Compiled output (CommonJS for ESLint compatibility)
 
-### Plugin Design
-- **ESLint 9+ Flat Config**: Uses modern flat config format
-- **Zero Custom Rules**: Only configures existing community rules
-- **Peer Dependencies**: Requires `@typescript-eslint/eslint-plugin`, `eslint-plugin-functional`, etc.
-- **Binary**: Provides `functype-list-rules` CLI command
+### Rule Architecture
+Each rule follows the pattern:
+- **AST Node Visitors**: Target specific TypeScript syntax patterns
+- **Functype Integration**: Check if functype is already being used properly
+- **Auto-Fixing**: Provide code transformations where possible
+- **Message Templates**: Structured error messages with data interpolation
 
-### Rule Sources
-The plugin curates rules from:
-- **eslint-plugin-functional**: Core functional programming rules
-- **@typescript-eslint/eslint-plugin**: TypeScript-specific patterns  
-- **ESLint core**: JavaScript immutability basics
-- **eslint-plugin-prettier**: Code formatting
-- **eslint-plugin-simple-import-sort**: Import organization
+Example rule structure:
+```typescript
+const rule: Rule.RuleModule = {
+  meta: {
+    type: "suggestion",
+    docs: { description: "...", category: "...", recommended: true },
+    fixable: "code", // If auto-fixable
+    messages: { messageId: "Template with {{data}}" }
+  },
+  create(context) {
+    const functypeImports = getFunctypeImports(context)
+    return {
+      TSUnionType(node) { /* visitor logic */ }
+    }
+  }
+}
+```
 
-### Configuration Tiers
-- **`recommended`**: Balanced functional programming (warnings for mutations)
-- **`strict`**: Maximum enforcement (errors for all functional violations)
+### Functype Integration System
+The `functype-detection.ts` utility provides:
+- **Import Detection**: Scans for `import { ... } from 'functype'` statements
+- **Type Recognition**: Identifies Option, Either, List type usage
+- **Method Call Detection**: Recognizes functype static and instance methods
+- **Context Analysis**: Determines when functype patterns are already in use
 
-## Key Implementation Details
+### Test Architecture
+- **Vitest**: Modern test runner with TypeScript support
+- **@typescript-eslint/rule-tester**: Official ESLint rule testing utility
+- **99 Tests**: Comprehensive coverage across all rules and edge cases
+- **Integration Tests**: Real functype library usage validation
+- **Auto-Fix Verification**: Ensures fixes produce valid, compilable code
+
+Test structure:
+```typescript
+ruleTester.run('rule-name', rule, {
+  valid: [{ name: 'description', code: '...' }],
+  invalid: [{ 
+    name: 'description', 
+    code: '...', 
+    errors: [{ messageId: 'templateId', data: {...} }],
+    output: '...' // Expected auto-fix result
+  }]
+})
+```
 
 ### Build System
-- **tsup**: Fast esbuild-powered bundler for optimal performance
-- **CommonJS Output**: Required for ESLint plugin compatibility  
-- **Source Maps**: Generated for better debugging experience
-- **Declaration Files**: Automatic TypeScript `.d.ts` generation
-- **Tree Shaking**: Enabled for smaller bundle sizes
-- **Watch Mode**: Available for development (`pnpm run build:watch`)
+- **tsup**: Fast esbuild-powered bundler optimized for libraries
+- **CommonJS Output**: Required for ESLint plugin compatibility
+- **TypeScript Integration**: Automatic `.d.ts` generation and type checking
+- **Source Maps**: Generated for debugging support
+- **Multiple Entry Points**: Plugin, CLI, and utilities compiled separately
 
-### Flat Config Format
-The plugin exports ESLint 9.x flat config objects with rule definitions only - no plugins or parser configuration (users must provide these).
+### Key Implementation Details
 
-### CLI Architecture
-The `list-rules.ts` CLI tool dynamically loads built configurations and provides formatted rule inspection with:
-- Color-coded output by severity
-- Grouping by rule source
-- Summary statistics
-- Usage examples
-- Dependency validation
+#### ESLint 9+ Flat Config Only
+The plugin is designed specifically for ESLint 9+ flat config format:
+```javascript
+import functypePlugin from 'eslint-plugin-functype'
 
-### TypeScript Configuration
-- Target: ES2020 with CommonJS modules via tsup
-- Strict mode disabled (for ESLint plugin compatibility)
-- Declaration files generated automatically
-- `noEmit: true` for IDE support (tsup handles compilation)
+export default [
+  {
+    plugins: { functype: functypePlugin },
+    rules: { 'functype/prefer-option': 'error' }
+  }
+]
+```
+
+#### TypeScript AST Patterns
+Rules analyze TypeScript-specific AST nodes:
+- `TSUnionType`: For `T | null | undefined` patterns
+- `TSArrayType`: For `T[]` syntax  
+- `TSTypeReference`: For `Array<T>`, `ReadonlyArray<T>`
+- `ArrayExpression`: For array literal `[1, 2, 3]`
+- `TryStatement`: For try/catch blocks
+- `IfStatement`: For conditional chains
+
+#### Auto-Fix Implementation
+Auto-fixes use ESLint's `fixer` API:
+```typescript
+fix(fixer) {
+  return fixer.replaceText(node, `Option<${typeParam}>`)
+}
+```
+
+#### Functype Library Detection
+Rules check for functype usage before flagging violations:
+```typescript
+// Skip if already using functype properly
+if (isFunctypeType(node, functypeImports)) return
+if (isAlreadyUsingFunctype(node, functypeImports)) return
+```
+
+This prevents false positives when developers are already using functype correctly.

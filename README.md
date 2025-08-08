@@ -164,9 +164,10 @@ const readonlyItems: List<string> = List.from(["a", "b"])
 items.forEach(item => console.log(item))
 
 // prefer-fold: use fold for conditional logic
-const result = Cond.of(condition1, value1)
-  .elseIf(condition2, value2)
-  .else(defaultValue)
+const result = Option.fromBoolean(condition1)
+  .map(() => value1)
+  .orElse(() => Option.fromBoolean(condition2).map(() => value2))
+  .getOrElse(defaultValue)
 ```
 
 ## Functype Integration
