@@ -26,7 +26,7 @@ export default defineConfig({
   clean: true,
   
   // Target Node.js environment
-  target: 'node18',
+  target: 'node22',
   
   // Note: We'll handle shebang differently since banner functions aren't working
   // The CLI binary will need its shebang added manually or via a separate build step

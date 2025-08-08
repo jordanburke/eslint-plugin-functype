@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 eslint-plugin-functype is a custom ESLint plugin providing 8 rules for functional TypeScript programming with functype library integration. This plugin creates custom ESLint rules rather than composing existing ones, providing precise TypeScript AST analysis and smart auto-fixing.
 
+**Development Requirements:** Node.js 22.0.0 or higher (for building/testing only - end users can run the plugin on any Node version supported by ESLint).
+
 ## Commands
 
 ### Build and Development

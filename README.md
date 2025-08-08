@@ -261,6 +261,10 @@ This plugin provides **custom ESLint rules** specifically designed for functiona
 
 ### Development Setup
 
+**Requirements:**
+- Node.js 22.0.0 or higher
+- pnpm (recommended package manager)
+
 ```bash
 git clone https://github.com/jordanburke/eslint-plugin-functype.git
 cd eslint-plugin-functype

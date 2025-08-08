@@ -1,4 +1,5 @@
 import { RuleTester } from '@typescript-eslint/rule-tester'
+import tsParser from '@typescript-eslint/parser'
 import * as vitest from 'vitest'
 
 // Configure RuleTester to use Vitest
@@ -10,7 +11,7 @@ RuleTester.describe = vitest.describe
 // Create a rule tester instance configured for TypeScript using flat config
 export const ruleTester = new RuleTester({
   languageOptions: {
-    parser: require('@typescript-eslint/parser'),
+    parser: tsParser,
     parserOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
