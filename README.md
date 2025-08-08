@@ -1,231 +1,282 @@
 # eslint-plugin-functype
 
-A curated ESLint configuration bundle for functional TypeScript programming. This plugin combines and configures rules from established ESLint plugins to enforce immutability patterns and functional programming best practices.
+Custom ESLint rules for functional TypeScript programming with [functype](https://github.com/jordanburke/functype) library patterns. Enforces immutability, type safety, and functional programming best practices for ESLint 9+.
 
-## What This Plugin Does
+[![npm version](https://badge.fury.io/js/eslint-plugin-functype.svg)](https://www.npmjs.com/package/eslint-plugin-functype)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Instead of recreating functional programming rules, this plugin provides carefully curated configurations that combine rules from:
+## Features
 
-- **eslint-plugin-functional**: Core functional programming rules
-- **@typescript-eslint/eslint-plugin**: TypeScript-specific functional patterns  
-- **ESLint core**: JavaScript immutability basics
+- 🔧 **8 Custom ESLint Rules** - Purpose-built for functional TypeScript patterns
+- 🏗️ **Functype Library Integration** - Smart detection when functype is already being used properly
+- 🛠️ **Auto-Fixable** - Most violations can be automatically fixed with `--fix`
+- ⚡ **ESLint 9+ Flat Config** - Modern ESLint configuration format
+- 🎯 **TypeScript Native** - Built specifically for TypeScript AST patterns
+- 📊 **99 Tests** - Comprehensive test coverage including real functype integration
+
+## Rules
+
+| Rule | Description | Auto-Fix |
+|------|-------------|----------|
+| `prefer-option` | Prefer `Option<T>` over nullable types (`T \| null \| undefined`) | ✅ |
+| `prefer-either` | Prefer `Either<E, T>` over try/catch and throw statements | ✅ |
+| `prefer-list` | Prefer `List<T>` over native arrays for immutable collections | ✅ |
+| `prefer-fold` | Prefer `.fold()` over complex if/else chains | ✅ |
+| `prefer-map` | Prefer `.map()` over imperative transformations | ✅ |
+| `prefer-flatmap` | Prefer `.flatMap()` over `.map().flat()` patterns | ✅ |
+| `no-get-unsafe` | Disallow unsafe `.get()` calls on Option/Either types | ❌ |
+| `no-imperative-loops` | Prefer functional iteration over imperative loops | ✅ |
 
 ## Installation
 
 ```bash
-npm install --save-dev eslint-plugin-functype @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-functional
+npm install --save-dev eslint-plugin-functype
 # or
-pnpm add -D eslint-plugin-functype @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-functional
+pnpm add -D eslint-plugin-functype
+```
+
+**Optional:** Install functype library for enhanced integration:
+
+```bash
+npm install functype
+# or  
+pnpm add functype
 ```
 
 ## Usage
 
-### ESLint 8 (.eslintrc) - Quick Start
+### ESLint 9+ Flat Config (Recommended)
 
 ```javascript
-// .eslintrc.js
-module.exports = {
-  extends: ["plugin:functype/recommended"],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    project: "./tsconfig.json",
-  },
-}
-```
-
-### ESLint 8 - Strict Mode
-
-```javascript
-// .eslintrc.js
-module.exports = {
-  extends: ["plugin:functype/strict"],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    project: "./tsconfig.json",
-  },
-}
-```
-
-### ESLint 9+ (Flat Config)
-
-For ESLint 9+, create your own flat config using our rule selections:
-
-```javascript
-// eslint.config.js
-import js from "@eslint/js"
-import tseslint from "@typescript-eslint/eslint-plugin"
-import functional from "eslint-plugin-functional"
-import parser from "@typescript-eslint/parser"
+// eslint.config.mjs
+import functypePlugin from 'eslint-plugin-functype'
+import tsParser from '@typescript-eslint/parser'
 
 export default [
-  js.configs.recommended,
   {
-    files: ["**/*.ts", "**/*.tsx"],
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      functype: functypePlugin,
+    },
     languageOptions: {
-      parser,
+      parser: tsParser,
       parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        project: "./tsconfig.json",
+        ecmaVersion: 2022,
+        sourceType: 'module',
       },
     },
-    plugins: {
-      "@typescript-eslint": tseslint,
-      functional,
-    },
     rules: {
-      // Core immutability
-      "prefer-const": "error",
-      "no-var": "error",
-      
-      // TypeScript functional patterns
-      "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-      
-      // Functional programming rules
-      "functional/no-let": "error",
-      "functional/immutable-data": "warn",
-      "functional/no-loop-statements": "off", // Enable as "error" for strict mode
+      // All rules as errors
+      'functype/prefer-option': 'error',
+      'functype/prefer-either': 'error', 
+      'functype/prefer-list': 'error',
+      'functype/prefer-fold': 'error',
+      'functype/prefer-map': 'error',
+      'functype/prefer-flatmap': 'error',
+      'functype/no-get-unsafe': 'error',
+      'functype/no-imperative-loops': 'error',
     },
-  }
+  },
 ]
 ```
 
-### Individual Rule Usage
-
-You can also use individual rules without our presets:
+### Individual Rule Configuration
 
 ```javascript
-{
-  "plugins": ["@typescript-eslint", "functional"],
-  "rules": {
-    "functional/no-let": "error",
-    "functional/immutable-data": "warn",
-    "@typescript-eslint/no-explicit-any": "error",
-    "prefer-const": "error"
-  }
-}
+// eslint.config.mjs - Selective rules
+export default [
+  {
+    files: ['**/*.ts'],
+    plugins: { functype: functypePlugin },
+    rules: {
+      // Start with just type safety rules
+      'functype/prefer-option': 'warn',
+      'functype/no-get-unsafe': 'error',
+      
+      // Add more as your codebase evolves
+      'functype/prefer-list': 'off', // Disable for gradual adoption
+    },
+  },
+]
 ```
-
-## What Rules Are Included
-
-### Recommended Configuration
-- ✅ `prefer-const` / `no-var` - Basic immutability
-- ✅ `functional/no-let` - Disallow `let` declarations
-- ⚠️ `functional/immutable-data` - Warn on data mutation
-- ⚠️ `functional/no-mutation` - Warn on object/array mutations
-- ✅ `@typescript-eslint/consistent-type-imports` - Clean imports
-- ✅ `@typescript-eslint/no-explicit-any` - Type safety
-
-### Strict Configuration
-All recommended rules plus:
-- ✅ `functional/no-loop-statements` - Disallow imperative loops
-- ✅ `functional/immutable-data` - Error on data mutation
-- ✅ `functional/prefer-immutable-types` - Encourage readonly types
-- ✅ `@typescript-eslint/explicit-function-return-type` - Explicit return types
 
 ## Examples
 
-```typescript
-// ❌ Bad (will be flagged)
-let x = 1;                    // functional/no-let
-arr.push(item);              // functional/immutable-data  
-for(let i = 0; i < 10; i++)  // functional/no-loop-statements (strict only)
+### ❌ Before (violations flagged)
 
-// ✅ Good  
-const x = 1;
-const newArr = [...arr, item];
-arr.forEach(item => process(item));
+```typescript
+// prefer-option: nullable types
+const user: User | null = findUser(id)
+function getAge(): number | undefined { /* ... */ }
+
+// prefer-either: try/catch blocks  
+try {
+  const result = riskyOperation()
+  return result
+} catch (error) {
+  console.error(error)
+  return null
+}
+
+// prefer-list: native arrays
+const items: number[] = [1, 2, 3]
+const readonlyItems: ReadonlyArray<string> = ["a", "b"]
+
+// no-imperative-loops: for/while loops
+for (let i = 0; i < items.length; i++) {
+  console.log(items[i])
+}
+
+// prefer-fold: complex if/else chains
+if (condition1) {
+  return value1
+} else if (condition2) {
+  return value2  
+} else {
+  return defaultValue
+}
 ```
 
-## Configurations
+### ✅ After (auto-fixed or manually corrected)
 
-- **`recommended`**: Balanced functional programming rules suitable for most projects
-- **`strict`**: Maximum functional programming enforcement for pure FP codebases
+```typescript
+import { Option, Either, List } from 'functype'
 
-## Philosophy
+// prefer-option: use Option<T>
+const user: Option<User> = Option.fromNullable(findUser(id))
+function getAge(): Option<number> { /* ... */ }
 
-This plugin follows the principle of **composition over recreation**. Rather than maintaining custom rules, we curate and combine battle-tested rules from the community, ensuring:
+// prefer-either: use Either<E, T>
+function safeOperation(): Either<Error, Result> {
+  try {
+    const result = riskyOperation()
+    return Either.right(result)
+  } catch (error) {
+    return Either.left(error as Error)
+  }
+}
 
-- ✅ Less maintenance burden
-- ✅ Better rule quality and edge case handling  
-- ✅ Automatic updates from upstream plugins
-- ✅ Community-driven improvements
+// prefer-list: use List<T>
+const items: List<number> = List.from([1, 2, 3])
+const readonlyItems: List<string> = List.from(["a", "b"])
+
+// no-imperative-loops: use functional methods
+items.forEach(item => console.log(item))
+
+// prefer-fold: use fold for conditional logic
+const result = Cond.of(condition1, value1)
+  .elseIf(condition2, value2)
+  .else(defaultValue)
+```
+
+## Functype Integration
+
+The plugin is **functype-aware** and won't flag code that's already using functype properly:
+
+```typescript
+import { Option, List } from 'functype'
+
+// ✅ These won't be flagged - already using functype correctly
+const user = Option.some({ name: "Alice" })
+const items = List.from([1, 2, 3])
+const result = user.map(u => u.name).getOrElse("Unknown")
+
+// ❌ These will still be flagged - bad patterns even with functype available  
+const badUser: User | null = null        // prefer-option
+const badItems = [1, 2, 3]              // prefer-list
+```
 
 ## CLI Tools
 
-### List All Supported Rules
-
-See exactly which rules are configured in each preset:
+### List All Rules
 
 ```bash
-# Basic rule listing
+# After installation
+npx functype-list-rules
+
+# During development
 pnpm run list-rules
 
-# Show rule options/configuration
-pnpm run list-rules:verbose  
+# Verbose output with configurations
+pnpm run list-rules:verbose
 
-# Show usage examples
+# Usage examples
 pnpm run list-rules:usage
-
-# Check peer dependency status
-pnpm run check-deps
-
-# Show help
-pnpm run cli:help
 ```
 
-### After Installation
-
-Once installed globally or in a project, you can also use:
-
-```bash
-# If installed globally
-functype-list-rules --help
-
-# Or with npx
-npx eslint-plugin-functype functype-list-rules
-```
-
-## CI/CD
-
-This plugin includes GitHub Actions workflows for:
-- ✅ **Testing** on Node.js 18, 20, 22
-- ✅ **Linting** with our own rules  
-- ✅ **Building** and validation
-- ✅ **Publishing** to npm on version changes
-
-## Development
+### Development Commands
 
 ```bash
 # Install dependencies
 pnpm install
 
-# Build
+# Build plugin
 pnpm run build
 
-# Lint
+# Run tests (99 tests)
+pnpm test
+
+# Lint codebase
 pnpm run lint
 
-# List rules during development  
-pnpm run list-rules
+# Type check
+pnpm run typecheck
+
+# Run all quality checks
+pnpm run check
 ```
 
-## Troubleshooting
+## Architecture
 
-### Missing Peer Dependencies
+### Philosophy: Custom Rules for Precise Control
 
-If you see errors like `Definition for rule '@typescript-eslint/no-explicit-any' was not found`, you're missing peer dependencies.
+This plugin provides **custom ESLint rules** specifically designed for functional TypeScript patterns, rather than composing existing rules. This approach offers:
 
-**Quick Check:**
+- 🎯 **Precise AST Analysis** - Rules understand TypeScript-specific patterns
+- 🔧 **Smart Auto-Fixing** - Context-aware fixes that maintain code intent
+- 📚 **Functype Integration** - Built-in detection of functype library usage
+- 🚀 **Better Performance** - Single-pass analysis instead of multiple rule evaluations
+
+### ESLint 9+ Flat Config Only
+
+- **Modern Configuration** - Uses ESLint 9.x flat config format
+- **No Legacy Support** - Clean architecture without backwards compatibility burden
+- **Plugin-First Design** - Designed specifically as an ESLint plugin
+
+### Test Coverage
+
+- **99 Tests Total** across 10 test suites
+- **Integration Tests** with real functype library usage
+- **Auto-Fix Verification** ensures fixes produce valid code
+- **False Positive Prevention** tests ensure proper functype patterns aren't flagged
+
+## Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature-name`
+3. **Make** your changes and add tests
+4. **Ensure** all quality checks pass: `pnpm run check`
+5. **Submit** a pull request
+
+### Development Setup
+
 ```bash
-pnpm run check-deps
+git clone https://github.com/jordanburke/eslint-plugin-functype.git
+cd eslint-plugin-functype
+pnpm install
+pnpm run build
+pnpm test
 ```
 
-This will show you exactly which dependencies are missing and provide the installation command.
+## License
 
-**Manual Installation:**
-```bash
-pnpm add -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-functional eslint-plugin-prettier eslint-plugin-simple-import-sort prettier
-```
+[MIT](LICENSE) © [Jordan Burke](https://github.com/jordanburke)
+
+## Related
+
+- **[functype](https://github.com/jordanburke/functype)** - Functional programming library for TypeScript
+- **[eslint-config-functype](https://github.com/jordanburke/eslint-config-functype)** - Complete ESLint config for functional TypeScript projects
+
+---
+
+**Need help?** [Open an issue](https://github.com/jordanburke/eslint-plugin-functype/issues) or check the [functype documentation](https://jordanburke.github.io/functype/).
