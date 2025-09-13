@@ -53,19 +53,8 @@ eslint-plugin-functype/
   "description": "ESLint plugin for functional TypeScript programming",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/",
-    "README.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "eslint",
-    "eslintplugin",
-    "eslint-plugin",
-    "functional",
-    "typescript",
-    "immutable"
-  ],
+  "files": ["dist/", "README.md", "LICENSE"],
+  "keywords": ["eslint", "eslintplugin", "eslint-plugin", "functional", "typescript", "immutable"],
   "scripts": {
     "build": "tsc",
     "test": "vitest",
@@ -119,44 +108,41 @@ const config: Linter.Config = {
     // Disable conflicting rules
     "no-console": "off",
     "no-case-declarations": "off",
-    
+
     // Error on dangerous patterns
     "no-throw-literal": "error",
     "no-extra-semi": "error",
     "no-mixed-spaces-and-tabs": "error",
-    
+
     // TypeScript rules
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/prefer-readonly": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { argsIgnorePattern: "^_" }
-    ],
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    
+
     // Immutability rules
     "prefer-const": "error",
     "no-var": "error",
     "functype/no-let": "error",
     "functype/no-loop-statements": "off", // TODO: Enable soon
     "functype/immutable-data": "warn",
-    
+
     // Import sorting
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
-    
+
     // Prettier
     "prettier/prettier": [
       "error",
       {},
       {
         usePrettierrc: true,
-      }
+      },
     ],
   },
   overrides: [
@@ -179,7 +165,7 @@ export default config
 import { ESLintUtils } from "@typescript-eslint/utils"
 
 const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://github.com/cquenced/eslint-plugin-functype/blob/main/docs/rules/${name}.md`
+  (name) => `https://github.com/cquenced/eslint-plugin-functype/blob/main/docs/rules/${name}.md`,
 )
 
 export const noLetRule = createRule({
@@ -226,7 +212,7 @@ export const noLetRule = createRule({
 import { ESLintUtils, TSESTree } from "@typescript-eslint/utils"
 
 const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://github.com/cquenced/eslint-plugin-functype/blob/main/docs/rules/${name}.md`
+  (name) => `https://github.com/cquenced/eslint-plugin-functype/blob/main/docs/rules/${name}.md`,
 )
 
 export const immutableDataRule = createRule({
@@ -257,25 +243,19 @@ export const immutableDataRule = createRule({
 
     return {
       AssignmentExpression(node: TSESTree.AssignmentExpression) {
-        if (
-          node.left.type === "MemberExpression" &&
-          node.operator === "="
-        ) {
+        if (node.left.type === "MemberExpression" && node.operator === "=") {
           context.report({
             node,
             messageId: "noMutation",
           })
         }
       },
-      
+
       CallExpression(node: TSESTree.CallExpression) {
-        if (
-          node.callee.type === "MemberExpression" &&
-          node.callee.property.type === "Identifier"
-        ) {
+        if (node.callee.type === "MemberExpression" && node.callee.property.type === "Identifier") {
           const method = node.callee.property.name
           const alternative = mutatingArrayMethods.get(method)
-          
+
           if (alternative) {
             context.report({
               node,
@@ -321,12 +301,7 @@ npm install --save-dev eslint-plugin-functype
 module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint", "functype", "simple-import-sort", "prettier"],
-  extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:functype/recommended",
-    "prettier"
-  ],
+  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:functype/recommended", "prettier"],
   rules: {
     // Additional project-specific overrides
   },
@@ -352,11 +327,7 @@ const ruleTester = new RuleTester({
 })
 
 ruleTester.run("no-let", noLetRule, {
-  valid: [
-    "const x = 1",
-    "const obj = { a: 1 }",
-    "function test() { const y = 2; return y }",
-  ],
+  valid: ["const x = 1", "const obj = { a: 1 }", "function test() { const y = 2; return y }"],
   invalid: [
     {
       code: "let x = 1",
@@ -389,6 +360,7 @@ docs/
 ## Publishing Checklist
 
 1. **Build and Test**
+
    ```bash
    npm run build
    npm test
@@ -396,9 +368,9 @@ docs/
    ```
 
 2. **Documentation**
-    - Complete rule documentation
-    - Usage examples
-    - Migration guide
+   - Complete rule documentation
+   - Usage examples
+   - Migration guide
 
 3. **Version and Publish**
    ```bash

@@ -7,25 +7,28 @@ Custom ESLint rules for functional TypeScript programming with [functype](https:
 
 ## Features
 
-- 🔧 **8 Custom ESLint Rules** - Purpose-built for functional TypeScript patterns
+- 🔧 **9 Custom ESLint Rules** - Purpose-built for functional TypeScript patterns
+- 🎭 **Do Notation Support** - New rule suggests functype's Do notation for complex monadic chains
 - 🏗️ **Functype Library Integration** - Smart detection when functype is already being used properly
 - 🛠️ **Auto-Fixable** - Most violations can be automatically fixed with `--fix`
 - ⚡ **ESLint 9+ Flat Config** - Modern ESLint configuration format
 - 🎯 **TypeScript Native** - Built specifically for TypeScript AST patterns
-- 📊 **99 Tests** - Comprehensive test coverage including real functype integration
+- 🎨 **Visual Test Output** - Beautiful before/after transformations with colorized diffs
+- 📊 **100+ Tests** - Comprehensive test coverage including real functype integration
 
 ## Rules
 
-| Rule | Description | Auto-Fix |
-|------|-------------|----------|
-| `prefer-option` | Prefer `Option<T>` over nullable types (`T \| null \| undefined`) | ✅ |
-| `prefer-either` | Prefer `Either<E, T>` over try/catch and throw statements | ✅ |
-| `prefer-list` | Prefer `List<T>` over native arrays for immutable collections | ✅ |
-| `prefer-fold` | Prefer `.fold()` over complex if/else chains | ✅ |
-| `prefer-map` | Prefer `.map()` over imperative transformations | ✅ |
-| `prefer-flatmap` | Prefer `.flatMap()` over `.map().flat()` patterns | ✅ |
-| `no-get-unsafe` | Disallow unsafe `.get()` calls on Option/Either types | ❌ |
-| `no-imperative-loops` | Prefer functional iteration over imperative loops | ✅ |
+| Rule                  | Description                                                       | Auto-Fix |
+| --------------------- | ----------------------------------------------------------------- | -------- |
+| `prefer-option`       | Prefer `Option<T>` over nullable types (`T \| null \| undefined`) | ✅       |
+| `prefer-either`       | Prefer `Either<E, T>` over try/catch and throw statements         | ✅       |
+| `prefer-list`         | Prefer `List<T>` over native arrays for immutable collections     | ✅       |
+| `prefer-fold`         | Prefer `.fold()` over complex if/else chains                      | ✅       |
+| `prefer-map`          | Prefer `.map()` over imperative transformations                   | ✅       |
+| `prefer-flatmap`      | Prefer `.flatMap()` over `.map().flat()` patterns                 | ✅       |
+| `no-get-unsafe`       | Disallow unsafe `.get()` calls on Option/Either types             | ❌       |
+| `no-imperative-loops` | Prefer functional iteration over imperative loops                 | ✅       |
+| `prefer-do-notation`  | Prefer Do notation for complex monadic compositions               | ✅       |
 
 ## Installation
 
@@ -39,7 +42,7 @@ pnpm add -D eslint-plugin-functype
 
 ```bash
 npm install functype
-# or  
+# or
 pnpm add functype
 ```
 
@@ -49,12 +52,12 @@ pnpm add functype
 
 ```javascript
 // eslint.config.mjs
-import functypePlugin from 'eslint-plugin-functype'
-import tsParser from '@typescript-eslint/parser'
+import functypePlugin from "eslint-plugin-functype"
+import tsParser from "@typescript-eslint/parser"
 
 export default [
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     plugins: {
       functype: functypePlugin,
     },
@@ -62,19 +65,20 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module',
+        sourceType: "module",
       },
     },
     rules: {
       // All rules as errors
-      'functype/prefer-option': 'error',
-      'functype/prefer-either': 'error', 
-      'functype/prefer-list': 'error',
-      'functype/prefer-fold': 'error',
-      'functype/prefer-map': 'error',
-      'functype/prefer-flatmap': 'error',
-      'functype/no-get-unsafe': 'error',
-      'functype/no-imperative-loops': 'error',
+      "functype/prefer-option": "error",
+      "functype/prefer-either": "error",
+      "functype/prefer-list": "error",
+      "functype/prefer-fold": "error",
+      "functype/prefer-map": "error",
+      "functype/prefer-flatmap": "error",
+      "functype/no-get-unsafe": "error",
+      "functype/no-imperative-loops": "error",
+      "functype/prefer-do-notation": "error",
     },
   },
 ]
@@ -86,15 +90,16 @@ export default [
 // eslint.config.mjs - Selective rules
 export default [
   {
-    files: ['**/*.ts'],
+    files: ["**/*.ts"],
     plugins: { functype: functypePlugin },
     rules: {
       // Start with just type safety rules
-      'functype/prefer-option': 'warn',
-      'functype/no-get-unsafe': 'error',
-      
+      "functype/prefer-option": "warn",
+      "functype/no-get-unsafe": "error",
+
       // Add more as your codebase evolves
-      'functype/prefer-list': 'off', // Disable for gradual adoption
+      "functype/prefer-list": "off", // Disable for gradual adoption
+      "functype/prefer-do-notation": "warn", // New: suggest Do notation
     },
   },
 ]
@@ -107,9 +112,11 @@ export default [
 ```typescript
 // prefer-option: nullable types
 const user: User | null = findUser(id)
-function getAge(): number | undefined { /* ... */ }
+function getAge(): number | undefined {
+  /* ... */
+}
 
-// prefer-either: try/catch blocks  
+// prefer-either: try/catch blocks
 try {
   const result = riskyOperation()
   return result
@@ -131,20 +138,31 @@ for (let i = 0; i < items.length; i++) {
 if (condition1) {
   return value1
 } else if (condition2) {
-  return value2  
+  return value2
 } else {
   return defaultValue
 }
+
+// prefer-do-notation: nested null checks
+const city = (user && user.address && user.address.city) || "Unknown"
+
+// prefer-do-notation: chained flatMap operations
+const result = option1
+  .flatMap((x) => getOption2(x))
+  .flatMap((y) => getOption3(y))
+  .flatMap((z) => getOption4(z))
 ```
 
 ### ✅ After (auto-fixed or manually corrected)
 
 ```typescript
-import { Option, Either, List } from 'functype'
+import { Option, Either, List, Do, $ } from "functype"
 
 // prefer-option: use Option<T>
 const user: Option<User> = Option.fromNullable(findUser(id))
-function getAge(): Option<number> { /* ... */ }
+function getAge(): Option<number> {
+  /* ... */
+}
 
 // prefer-either: use Either<E, T>
 function safeOperation(): Either<Error, Result> {
@@ -161,13 +179,28 @@ const items: List<number> = List.from([1, 2, 3])
 const readonlyItems: List<string> = List.from(["a", "b"])
 
 // no-imperative-loops: use functional methods
-items.forEach(item => console.log(item))
+items.forEach((item) => console.log(item))
 
 // prefer-fold: use fold for conditional logic
 const result = Option.fromBoolean(condition1)
   .map(() => value1)
   .orElse(() => Option.fromBoolean(condition2).map(() => value2))
   .getOrElse(defaultValue)
+
+// prefer-do-notation: use Do notation for nested checks
+const city = Do(function* () {
+  const u = yield* $(Option(user))
+  const addr = yield* $(Option(u.address))
+  return yield* $(Option(addr.city))
+}).getOrElse("Unknown")
+
+// prefer-do-notation: use Do for complex chains
+const result = Do(function* () {
+  const x = yield* $(option1)
+  const y = yield* $(getOption2(x))
+  const z = yield* $(getOption3(y))
+  return yield* $(getOption4(z))
+})
 ```
 
 ## Functype Integration
@@ -175,16 +208,16 @@ const result = Option.fromBoolean(condition1)
 The plugin is **functype-aware** and won't flag code that's already using functype properly:
 
 ```typescript
-import { Option, List } from 'functype'
+import { Option, List } from "functype"
 
 // ✅ These won't be flagged - already using functype correctly
 const user = Option.some({ name: "Alice" })
 const items = List.from([1, 2, 3])
-const result = user.map(u => u.name).getOrElse("Unknown")
+const result = user.map((u) => u.name).getOrElse("Unknown")
 
-// ❌ These will still be flagged - bad patterns even with functype available  
-const badUser: User | null = null        // prefer-option
-const badItems = [1, 2, 3]              // prefer-list
+// ❌ These will still be flagged - bad patterns even with functype available
+const badUser: User | null = null // prefer-option
+const badItems = [1, 2, 3] // prefer-list
 ```
 
 ## CLI Tools
@@ -214,8 +247,11 @@ pnpm install
 # Build plugin
 pnpm run build
 
-# Run tests (99 tests)
+# Run tests (100+ tests)
 pnpm test
+
+# Visual transformation demo
+pnpm test tests/rules/visual-transformation-demo.test.ts
 
 # Lint codebase
 pnpm run lint
@@ -246,9 +282,10 @@ This plugin provides **custom ESLint rules** specifically designed for functiona
 
 ### Test Coverage
 
-- **99 Tests Total** across 10 test suites
+- **100+ Tests Total** across 11 test suites (including visual tests)
 - **Integration Tests** with real functype library usage
 - **Auto-Fix Verification** ensures fixes produce valid code
+- **Visual Test Output** with colorized before/after transformations
 - **False Positive Prevention** tests ensure proper functype patterns aren't flagged
 
 ## Contributing
@@ -262,6 +299,7 @@ This plugin provides **custom ESLint rules** specifically designed for functiona
 ### Development Setup
 
 **Requirements:**
+
 - Node.js 22.0.0 or higher
 - pnpm (recommended package manager)
 

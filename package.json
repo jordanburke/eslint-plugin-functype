@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-functype",
-  "version": "1.2.0",
-  "description": "Custom ESLint rules for functional TypeScript programming with functype library patterns (ESLint 9.x+)",
+  "version": "1.3.0",
+  "description": "Custom ESLint rules for functional TypeScript programming with functype library patterns including Do notation (ESLint 9.x+)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -25,17 +25,23 @@
     "list"
   ],
   "scripts": {
-    "build": "pnpm run typecheck && tsup",
-    "build:watch": "tsup --watch",
-    "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit",
+    "validate": "pnpm format && pnpm lint && pnpm test && pnpm build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint src --fix",
+    "lint:check": "eslint src",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
     "test:watch": "VITE_CJS_IGNORE_WARNING=true vitest --watch",
     "test:ui": "VITE_CJS_IGNORE_WARNING=true vitest --ui",
     "test:coverage": "VITE_CJS_IGNORE_WARNING=true vitest --coverage",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run test --run",
+    "build": "rimraf dist && pnpm run typecheck && tsup",
+    "build:watch": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "compile": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "check": "pnpm run typecheck && pnpm run lint:check && pnpm run test",
     "prepare": "pnpm run build",
-    "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build",
+    "prepublishOnly": "pnpm validate",
     "list-rules": "node dist/cli/list-rules.js",
     "list-rules:verbose": "node dist/cli/list-rules.js --verbose",
     "list-rules:usage": "node dist/cli/list-rules.js --usage",
@@ -62,6 +68,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "functype": "^0.15.0",
     "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
@@ -82,5 +89,5 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "packageManager": "pnpm@10.16.0+sha512.8066e7b034217b700a9a4dbb3a005061d641ba130a89915213a10b3ca4919c19c037bec8066afdc559b89635fdb806b16ea673f2468fbb28aabfa13c53e3f769"
+  "packageManager": "pnpm@10.16.1+sha512.0e155aa2629db8672b49e8475da6226aa4bdea85fdcdfdc15350874946d4f3c91faaf64cbdc4a5d1ab8002f473d5c3fcedcd197989cf0390f9badd3c04678706"
 }

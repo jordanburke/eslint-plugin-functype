@@ -1,106 +1,106 @@
-import { describe } from 'vitest'
-import { ruleTester } from '../utils/rule-tester'
-import rule from '../../src/rules/prefer-option'
+import { describe } from "vitest"
+import { ruleTester } from "../utils/rule-tester"
+import rule from "../../src/rules/prefer-option"
 
-describe('prefer-option', () => {
-  ruleTester.run('prefer-option', rule, {
+describe("prefer-option", () => {
+  ruleTester.run("prefer-option", rule, {
     valid: [
       // Already using Option
       {
-        name: 'Option type is allowed',
+        name: "Option type is allowed",
         code: 'const value: Option<string> = Some("test")',
       },
       // Non-nullable types
       {
-        name: 'Non-nullable types are allowed',
+        name: "Non-nullable types are allowed",
         code: 'const value: string = "test"',
       },
       // Function parameters with non-nullable types
       {
-        name: 'Function with non-nullable parameters',
-        code: 'function test(value: string): string { return value }',
+        name: "Function with non-nullable parameters",
+        code: "function test(value: string): string { return value }",
       },
       // Complex types without null/undefined
       {
-        name: 'Complex types without nullability',
+        name: "Complex types without nullability",
         code: 'const value: { name: string; age: number } = { name: "test", age: 25 }',
       },
     ],
     invalid: [
       // Basic nullable type
       {
-        name: 'String or null should use Option',
-        code: 'const value: string | null = null',
+        name: "String or null should use Option",
+        code: "const value: string | null = null",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { type: 'string', nullable: 'string | null' },
+            messageId: "preferOption",
+            data: { type: "string", nullable: "string | null" },
           },
         ],
-        output: 'const value: Option<string> = null',
+        output: "const value: Option<string> = null",
       },
       // String or undefined
       {
-        name: 'String or undefined should use Option',
-        code: 'const value: string | undefined = undefined',
+        name: "String or undefined should use Option",
+        code: "const value: string | undefined = undefined",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { type: 'string', nullable: 'string | undefined' },
+            messageId: "preferOption",
+            data: { type: "string", nullable: "string | undefined" },
           },
         ],
-        output: 'const value: Option<string> = undefined',
+        output: "const value: Option<string> = undefined",
       },
       // String with both null and undefined
       {
-        name: 'String with null and undefined should use Option',
-        code: 'const value: string | null | undefined = null',
+        name: "String with null and undefined should use Option",
+        code: "const value: string | null | undefined = null",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { type: 'string', nullable: 'string | null | undefined' },
+            messageId: "preferOption",
+            data: { type: "string", nullable: "string | null | undefined" },
           },
         ],
-        output: 'const value: Option<string> = null',
+        output: "const value: Option<string> = null",
       },
       // Function return type
       {
-        name: 'Function return type should use Option',
-        code: 'function getValue(): string | null { return null }',
+        name: "Function return type should use Option",
+        code: "function getValue(): string | null { return null }",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { type: 'string', nullable: 'string | null' },
+            messageId: "preferOption",
+            data: { type: "string", nullable: "string | null" },
           },
         ],
-        output: 'function getValue(): Option<string> { return null }',
+        output: "function getValue(): Option<string> { return null }",
       },
       // Complex type with null
       {
-        name: 'Complex type with null should use Option',
-        code: 'const user: { name: string; age: number } | null = null',
+        name: "Complex type with null should use Option",
+        code: "const user: { name: string; age: number } | null = null",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { 
-              type: '{ name: string; age: number }', 
-              nullable: '{ name: string; age: number } | null' 
+            messageId: "preferOption",
+            data: {
+              type: "{ name: string; age: number }",
+              nullable: "{ name: string; age: number } | null",
             },
           },
         ],
-        output: 'const user: Option<{ name: string; age: number }> = null',
+        output: "const user: Option<{ name: string; age: number }> = null",
       },
       // Array type with null
       {
-        name: 'Array type with null should use Option',
-        code: 'const items: string[] | null = null',
+        name: "Array type with null should use Option",
+        code: "const items: string[] | null = null",
         errors: [
           {
-            messageId: 'preferOption',
-            data: { type: 'string[]', nullable: 'string[] | null' },
+            messageId: "preferOption",
+            data: { type: "string[]", nullable: "string[] | null" },
           },
         ],
-        output: 'const items: Option<string[]> = null',
+        output: "const items: Option<string[]> = null",
       },
     ],
   })

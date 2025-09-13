@@ -1,13 +1,13 @@
-import { describe } from 'vitest'
-import { ruleTester } from '../utils/rule-tester'
-import rule from '../../src/rules/prefer-fold'
+import { describe } from "vitest"
+import { ruleTester } from "../utils/rule-tester"
+import rule from "../../src/rules/prefer-fold"
 
-describe('prefer-fold', () => {
-  ruleTester.run('prefer-fold', rule, {
+describe("prefer-fold", () => {
+  ruleTester.run("prefer-fold", rule, {
     valid: [
       // Using fold
       {
-        name: 'Using fold() is preferred',
+        name: "Using fold() is preferred",
         code: `
           const result = option.fold(
             () => "empty",
@@ -17,7 +17,7 @@ describe('prefer-fold', () => {
       },
       // Simple if without monadic checks
       {
-        name: 'Simple if statements are allowed',
+        name: "Simple if statements are allowed",
         code: `
           if (x > 5) {
             console.log("greater")
@@ -26,7 +26,7 @@ describe('prefer-fold', () => {
       },
       // Single if statement with monadic check (below complexity threshold)
       {
-        name: 'Single if with monadic check is allowed with low complexity',
+        name: "Single if with monadic check is allowed with low complexity",
         code: `
           if (option.isSome()) {
             console.log(option.get())
@@ -38,7 +38,7 @@ describe('prefer-fold', () => {
     invalid: [
       // If/else chain with isSome check
       {
-        name: 'If/else with isSome should use fold',
+        name: "If/else with isSome should use fold",
         code: `
           if (option.isSome()) {
             return option.get()
@@ -48,25 +48,25 @@ describe('prefer-fold', () => {
         `,
         errors: [
           {
-            messageId: 'preferFold',
-            data: { type: 'Option' },
+            messageId: "preferFold",
+            data: { type: "Option" },
           },
         ],
       },
       // Ternary operator with isRight check
       {
-        name: 'Ternary with Either check should use fold',
+        name: "Ternary with Either check should use fold",
         code: 'const result = either.isRight() ? either.get() : "error"',
         errors: [
           {
-            messageId: 'preferFoldTernary',
-            data: { type: 'Either' },
+            messageId: "preferFoldTernary",
+            data: { type: "Either" },
           },
         ],
       },
       // Complex if/else if/else chain
       {
-        name: 'Complex if/else chain with monadic checks',
+        name: "Complex if/else chain with monadic checks",
         code: `
           if (result.isSuccess()) {
             return result.get()
@@ -78,14 +78,14 @@ describe('prefer-fold', () => {
         `,
         errors: [
           {
-            messageId: 'preferFold',
-            data: { type: 'Result' },
+            messageId: "preferFold",
+            data: { type: "Result" },
           },
         ],
       },
       // Null check that could be Option
       {
-        name: 'Null check should potentially use Option.fold',
+        name: "Null check should potentially use Option.fold",
         code: `
           if (value !== null) {
             return value.toUpperCase()
@@ -95,14 +95,14 @@ describe('prefer-fold', () => {
         `,
         errors: [
           {
-            messageId: 'preferFold',
-            data: { type: 'Option' },
+            messageId: "preferFold",
+            data: { type: "Option" },
           },
         ],
       },
       // Undefined check
       {
-        name: 'Undefined check should potentially use Option.fold',
+        name: "Undefined check should potentially use Option.fold",
         code: `
           if (value !== undefined) {
             return process(value)
@@ -112,19 +112,19 @@ describe('prefer-fold', () => {
         `,
         errors: [
           {
-            messageId: 'preferFold',
-            data: { type: 'Option' },
+            messageId: "preferFold",
+            data: { type: "Option" },
           },
         ],
       },
       // Ternary with null check
       {
-        name: 'Ternary with null check should use fold',
+        name: "Ternary with null check should use fold",
         code: 'const result = value === null ? "empty" : value.toString()',
         errors: [
           {
-            messageId: 'preferFoldTernary',
-            data: { type: 'Option' },
+            messageId: "preferFoldTernary",
+            data: { type: "Option" },
           },
         ],
       },

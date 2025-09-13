@@ -1,6 +1,6 @@
 import type { Rule } from "eslint"
 import type { ASTNode } from "../types/ast"
-import { getFunctypeImports, isFunctypeCall } from "../utils/functype-detection"
+import { getFunctypeImportsLegacy, isFunctypeCall } from "../utils/functype-detection"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -20,7 +20,7 @@ const rule: Rule.RuleModule = {
             default: true,
           },
           allowReadonlyArrays: {
-            type: "boolean", 
+            type: "boolean",
             default: true,
           },
         },
@@ -39,14 +39,16 @@ const rule: Rule.RuleModule = {
     const allowReadonlyArrays = options.allowReadonlyArrays !== false
 
     // Get functype imports if available (but still apply rule even without explicit import)
-    const functypeImports = getFunctypeImports(context)
+    const functypeImports = getFunctypeImportsLegacy(context)
 
     function isInTestFile() {
       const filename = context.getFilename()
-      return /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
-             filename.includes("__tests__") ||
-             filename.includes("/test/") ||
-             filename.includes("/tests/")
+      return (
+        /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
+        filename.includes("__tests__") ||
+        filename.includes("/test/") ||
+        filename.includes("/tests/")
+      )
     }
 
     function findTypeParameter(node: ASTNode, sourceCode: typeof context.sourceCode): string | null {
@@ -55,7 +57,7 @@ const rule: Rule.RuleModule = {
         if (n.type === "TSTypeParameterInstantiation" && n.params && n.params[0]) {
           return sourceCode.getText(n.params[0])
         }
-        
+
         // Recursively search child nodes
         for (const key in n) {
           if (key === "parent") continue
@@ -72,10 +74,10 @@ const rule: Rule.RuleModule = {
             if (result) return result
           }
         }
-        
+
         return null
       }
-      
+
       return findInNode(node)
     }
 
@@ -104,7 +106,7 @@ const rule: Rule.RuleModule = {
         if (allowArraysInTests && isInTestFile()) return
 
         const sourceCode = context.sourceCode
-        
+
         // Get type name - handle both simple identifiers and member expressions
         let typeName = ""
         if (node.typeName && node.typeName.type === "Identifier") {
@@ -167,13 +169,16 @@ const rule: Rule.RuleModule = {
         if (parent && isFunctypeCall(parent, functypeImports)) {
           return
         }
-        
+
         // Additional specific check for List.from/List.of patterns
-        if (parent && parent.type === "CallExpression" && 
-            parent.callee.type === "MemberExpression" &&
-            parent.callee.object.type === "Identifier" &&
-            parent.callee.object.name === "List" &&
-            ["from", "of"].includes(parent.callee.property.name)) {
+        if (
+          parent &&
+          parent.type === "CallExpression" &&
+          parent.callee.type === "MemberExpression" &&
+          parent.callee.object.type === "Identifier" &&
+          parent.callee.object.name === "List" &&
+          ["from", "of"].includes(parent.callee.property.name)
+        ) {
           return
         }
 
@@ -203,7 +208,7 @@ const rule: Rule.RuleModule = {
           }
           parent = parent.parent
         }
-        
+
         if (hasTypeAnnotation) return
 
         context.report({

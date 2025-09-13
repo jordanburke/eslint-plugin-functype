@@ -9,41 +9,41 @@ interface PeerDependency {
 
 const PEER_DEPENDENCIES: PeerDependency[] = [
   {
-    name: '@typescript-eslint/eslint-plugin',
-    packageName: '@typescript-eslint/eslint-plugin',
-    description: 'TypeScript-aware ESLint rules',
-    required: true
+    name: "@typescript-eslint/eslint-plugin",
+    packageName: "@typescript-eslint/eslint-plugin",
+    description: "TypeScript-aware ESLint rules",
+    required: true,
   },
   {
-    name: '@typescript-eslint/parser',
-    packageName: '@typescript-eslint/parser', 
-    description: 'TypeScript parser for ESLint',
-    required: true
+    name: "@typescript-eslint/parser",
+    packageName: "@typescript-eslint/parser",
+    description: "TypeScript parser for ESLint",
+    required: true,
   },
   {
-    name: 'eslint-plugin-functional',
-    packageName: 'eslint-plugin-functional',
-    description: 'Functional programming ESLint rules',
-    required: true
+    name: "eslint-plugin-functional",
+    packageName: "eslint-plugin-functional",
+    description: "Functional programming ESLint rules",
+    required: true,
   },
   {
-    name: 'eslint-plugin-prettier',
-    packageName: 'eslint-plugin-prettier',
-    description: 'Code formatting rules',
-    required: false
+    name: "eslint-plugin-prettier",
+    packageName: "eslint-plugin-prettier",
+    description: "Code formatting rules",
+    required: false,
   },
   {
-    name: 'eslint-plugin-simple-import-sort',
-    packageName: 'eslint-plugin-simple-import-sort',
-    description: 'Import sorting rules',
-    required: false
+    name: "eslint-plugin-simple-import-sort",
+    packageName: "eslint-plugin-simple-import-sort",
+    description: "Import sorting rules",
+    required: false,
   },
   {
-    name: 'prettier',
-    packageName: 'prettier',
-    description: 'Code formatter',
-    required: false
-  }
+    name: "prettier",
+    packageName: "prettier",
+    description: "Code formatter",
+    required: false,
+  },
 ]
 
 export interface ValidationResult {
@@ -82,51 +82,46 @@ export function validatePeerDependencies(): ValidationResult {
     }
   }
 
-  const requiredMissing = missing.filter(dep => dep.required)
+  const requiredMissing = missing.filter((dep) => dep.required)
   const isValid = requiredMissing.length === 0
 
   // Generate install command for missing dependencies
-  const missingPackageNames = missing.map(dep => dep.packageName)
-  const installCommand = missingPackageNames.length > 0 
-    ? `pnpm add -D ${missingPackageNames.join(' ')}`
-    : ''
+  const missingPackageNames = missing.map((dep) => dep.packageName)
+  const installCommand = missingPackageNames.length > 0 ? `pnpm add -D ${missingPackageNames.join(" ")}` : ""
 
   return {
     isValid,
     missing,
     available,
     installCommand,
-    warnings
+    warnings,
   }
 }
 
 export function createValidationError(result: ValidationResult): Error {
-  const requiredMissing = result.missing.filter(dep => dep.required)
-  
+  const requiredMissing = result.missing.filter((dep) => dep.required)
+
   if (requiredMissing.length === 0) {
-    return new Error('No validation errors')
+    return new Error("No validation errors")
   }
 
-  const missingList = requiredMissing
-    .map(dep => `  • ${dep.name} - ${dep.description}`)
-    .join('\n')
+  const missingList = requiredMissing.map((dep) => `  • ${dep.name} - ${dep.description}`).join("\n")
 
   const message = [
-    '❌ Missing required peer dependencies for eslint-plugin-functype:',
-    '',
+    "❌ Missing required peer dependencies for eslint-plugin-functype:",
+    "",
     missingList,
-    '',
-    '📦 Install missing dependencies:',
+    "",
+    "📦 Install missing dependencies:",
     `   ${result.installCommand}`,
-    '',
-    '📖 See installation guide: https://github.com/jordanburke/eslint-plugin-functype#installation'
-  ].join('\n')
+    "",
+    "📖 See installation guide: https://github.com/jordanburke/eslint-plugin-functype#installation",
+  ].join("\n")
 
   return new Error(message)
 }
 
 export function shouldValidateDependencies(): boolean {
   // Skip validation in test environments or when explicitly disabled
-  return process.env.NODE_ENV !== 'test' && 
-         process.env.FUNCTYPE_SKIP_VALIDATION !== 'true'
+  return process.env.NODE_ENV !== "test" && process.env.FUNCTYPE_SKIP_VALIDATION !== "true"
 }

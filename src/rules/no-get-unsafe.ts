@@ -39,37 +39,39 @@ const rule: Rule.RuleModule = {
 
     function isInTestFile() {
       const filename = context.getFilename()
-      return /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
-             filename.includes("__tests__") ||
-             filename.includes("/test/") ||
-             filename.includes("/tests/")
+      return (
+        /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
+        filename.includes("__tests__") ||
+        filename.includes("/test/") ||
+        filename.includes("/tests/")
+      )
     }
 
     function isMonadicType(node: ASTNode): boolean {
       // This is a simplified check - in a real implementation, you'd want
       // more sophisticated type checking using TypeScript's type checker
       if (!node) return false
-      
+
       const sourceCode = context.sourceCode
-      
+
       // Check for common patterns that indicate monadic types
       const text = sourceCode.getText(node)
-      
+
       // Direct type checks - constructors or type names
       if (/\b(Option|Either|Maybe|Result|Some|None|Left|Right)\b/.test(text)) {
         return true
       }
-      
+
       // Method chains that suggest monadic operations
       if (/\.(map|flatMap|filter|fold)\s*\(/.test(text)) {
         return true
       }
-      
+
       // Variable names that suggest monadic types (case insensitive)
       if (/\b(option|either|maybe|result|some|none|left|right)\w*\b/i.test(text)) {
         return true
       }
-      
+
       // Check the specific node type and name
       if (node.type === "Identifier") {
         const varName = node.name.toLowerCase()
@@ -77,14 +79,12 @@ const rule: Rule.RuleModule = {
           return true
         }
       }
-      
+
       // Check for CallExpression pattern like Some("test").map()
-      if (node.type === "CallExpression" && 
-          node.callee.type === "MemberExpression" &&
-          node.callee.object) {
+      if (node.type === "CallExpression" && node.callee.type === "MemberExpression" && node.callee.object) {
         return isMonadicType(node.callee.object)
       }
-      
+
       return false
     }
 

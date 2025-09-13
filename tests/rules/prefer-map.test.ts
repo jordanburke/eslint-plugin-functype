@@ -1,35 +1,35 @@
-import { describe } from 'vitest'
-import { ruleTester } from '../utils/rule-tester'
-import rule from '../../src/rules/prefer-map'
+import { describe } from "vitest"
+import { ruleTester } from "../utils/rule-tester"
+import rule from "../../src/rules/prefer-map"
 
-describe('prefer-map', () => {
-  ruleTester.run('prefer-map', rule, {
+describe("prefer-map", () => {
+  ruleTester.run("prefer-map", rule, {
     valid: [
       // Using map
       {
-        name: 'Using map is preferred',
-        code: 'const doubled = numbers.map(n => n * 2)',
+        name: "Using map is preferred",
+        code: "const doubled = numbers.map(n => n * 2)",
       },
       // Using other functional methods
       {
-        name: 'Using filter is allowed',
-        code: 'const evens = numbers.filter(n => n % 2 === 0)',
+        name: "Using filter is allowed",
+        code: "const evens = numbers.filter(n => n % 2 === 0)",
       },
       // Simple forEach without transformation
       {
-        name: 'Simple forEach for side effects is allowed',
-        code: 'numbers.forEach(n => console.log(n))',
+        name: "Simple forEach for side effects is allowed",
+        code: "numbers.forEach(n => console.log(n))",
       },
       // Non-array operations
       {
-        name: 'Non-array operations are allowed',
-        code: 'const result = calculateValue(input)',
+        name: "Non-array operations are allowed",
+        code: "const result = calculateValue(input)",
       },
     ],
     invalid: [
       // For loop with transformation
       {
-        name: 'For loop with transformation should use map',
+        name: "For loop with transformation should use map",
         code: `
           const results = []
           for (let i = 0; i < items.length; i++) {
@@ -38,14 +38,14 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'array' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "array" },
           },
         ],
       },
       // For...of loop with push
       {
-        name: 'For...of loop with push should use map',
+        name: "For...of loop with push should use map",
         code: `
           const results = []
           for (const item of items) {
@@ -54,14 +54,14 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'iterable' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "iterable" },
           },
         ],
       },
       // For...in loop with transformation
       {
-        name: 'For...in loop with transformation should use map',
+        name: "For...in loop with transformation should use map",
         code: `
           const results = []
           for (const key in obj) {
@@ -70,24 +70,24 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'object' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "object" },
           },
         ],
       },
       // forEach with simple property access (could be map)
       {
-        name: 'forEach with property access should consider map',
-        code: 'items.forEach(item => item.name)',
+        name: "forEach with property access should consider map",
+        code: "items.forEach(item => item.name)",
         errors: [
           {
-            messageId: 'preferMapChain',
+            messageId: "preferMapChain",
           },
         ],
       },
       // Manual push inside forEach
       {
-        name: 'Manual push inside forEach should use map',
+        name: "Manual push inside forEach should use map",
         code: `
           const names = []
           items.forEach(item => {
@@ -96,13 +96,13 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverPush',
+            messageId: "preferMapOverPush",
           },
         ],
       },
       // Complex transformation in for loop
       {
-        name: 'Complex transformation in for loop',
+        name: "Complex transformation in for loop",
         code: `
           const processed = []
           for (let i = 0; i < users.length; i++) {
@@ -115,14 +115,14 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'array' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "array" },
           },
         ],
       },
       // Multiple push operations suggesting map
       {
-        name: 'Multiple loops with push should all use map',
+        name: "Multiple loops with push should all use map",
         code: `
           const results1 = []
           for (const item of list1) {
@@ -136,12 +136,12 @@ describe('prefer-map', () => {
         `,
         errors: [
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'iterable' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "iterable" },
           },
           {
-            messageId: 'preferMapOverLoop',
-            data: { collection: 'array' },
+            messageId: "preferMapOverLoop",
+            data: { collection: "array" },
           },
         ],
       },

@@ -1,4 +1,3 @@
-
 import rules from "./rules"
 
 // ESLint 9.x Flat Config Plugin

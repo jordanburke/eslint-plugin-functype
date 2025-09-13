@@ -18,7 +18,7 @@ const rule: Rule.RuleModule = {
             default: true,
           },
           checkForLoops: {
-            type: "boolean", 
+            type: "boolean",
             default: true,
           },
         },
@@ -39,17 +39,15 @@ const rule: Rule.RuleModule = {
 
     function isTransformationLoop(node: ASTNode): boolean {
       if (!node.body || node.body.type !== "BlockStatement") return false
-      
+
       const statements = node.body.body
       if (statements.length === 0) return false
 
       // Look for patterns like: newArray.push(transform(item))
       return statements.some((stmt: ASTNode) => {
-        if (stmt.type === "ExpressionStatement" && 
-            stmt.expression.type === "CallExpression") {
+        if (stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
           const call = stmt.expression
-          return call.callee.type === "MemberExpression" &&
-                 call.callee.property.name === "push"
+          return call.callee.type === "MemberExpression" && call.callee.property.name === "push"
         }
         return false
       })
@@ -58,13 +56,13 @@ const rule: Rule.RuleModule = {
     function isSimplePropertyAccess(node: ASTNode): boolean {
       // Check for patterns like: items.forEach(item => console.log(item.name))
       // These could often be: items.map(item => item.name)
-      if (node.type === "CallExpression" &&
-          node.callee.type === "MemberExpression" &&
-          node.callee.property.name === "forEach") {
-        
+      if (
+        node.type === "CallExpression" &&
+        node.callee.type === "MemberExpression" &&
+        node.callee.property.name === "forEach"
+      ) {
         const callback = node.arguments[0]
-        if (callback && (callback.type === "ArrowFunctionExpression" || 
-                        callback.type === "FunctionExpression")) {
+        if (callback && (callback.type === "ArrowFunctionExpression" || callback.type === "FunctionExpression")) {
           const body = callback.body
           // Simple property access in arrow function
           if (body.type === "MemberExpression") {
@@ -82,7 +80,7 @@ const rule: Rule.RuleModule = {
         if (isTransformationLoop(node)) {
           context.report({
             node,
-            messageId: "preferMapOverLoop", 
+            messageId: "preferMapOverLoop",
             data: { collection: "array" },
           })
         }
@@ -116,9 +114,7 @@ const rule: Rule.RuleModule = {
         if (!checkArrayMethods) return
 
         // Check for forEach that could be map
-        if (node.callee.type === "MemberExpression" &&
-            node.callee.property.name === "forEach") {
-          
+        if (node.callee.type === "MemberExpression" && node.callee.property.name === "forEach") {
           if (isSimplePropertyAccess(node)) {
             context.report({
               node,
@@ -128,17 +124,15 @@ const rule: Rule.RuleModule = {
         }
 
         // Check for manual push patterns in callbacks
-        if (node.callee.type === "MemberExpression" &&
-            node.callee.property.name === "push") {
-          
+        if (node.callee.type === "MemberExpression" && node.callee.property.name === "push") {
           // Check if we're inside a forEach or similar iteration
           let parent = node.parent
           while (parent) {
-            if (parent.type === "CallExpression" &&
-                parent.callee.type === "MemberExpression" &&
-                (parent.callee.property.name === "forEach" ||
-                 parent.callee.property.name === "for")) {
-              
+            if (
+              parent.type === "CallExpression" &&
+              parent.callee.type === "MemberExpression" &&
+              (parent.callee.property.name === "forEach" || parent.callee.property.name === "for")
+            ) {
               context.report({
                 node,
                 messageId: "preferMapOverPush",

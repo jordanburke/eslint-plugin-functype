@@ -6,6 +6,7 @@ import preferFold from "./prefer-fold"
 import preferMap from "./prefer-map"
 import preferFlatmap from "./prefer-flatmap"
 import noImperativeLoops from "./no-imperative-loops"
+import preferDoNotation from "./prefer-do-notation"
 
 export {
   preferOption,
@@ -16,6 +17,7 @@ export {
   preferMap,
   preferFlatmap,
   noImperativeLoops,
+  preferDoNotation,
 }
 
 export default {
@@ -27,4 +29,5 @@ export default {
   "prefer-map": preferMap,
   "prefer-flatmap": preferFlatmap,
   "no-imperative-loops": noImperativeLoops,
+  "prefer-do-notation": preferDoNotation,
 }

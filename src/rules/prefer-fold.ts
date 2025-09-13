@@ -6,7 +6,7 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer .fold() over if/else chains when working with monadic types",
-      category: "Best Practices", 
+      category: "Best Practices",
       recommended: true,
     },
     schema: [
@@ -40,7 +40,7 @@ const rule: Rule.RuleModule = {
       if (/\.(isSome|isNone|isEmpty|isDefined)\s*\(\s*\)/.test(text)) {
         return { isMonadic: true, type: "Option" }
       }
-      
+
       if (/\.(isLeft|isRight)\s*\(\s*\)/.test(text)) {
         return { isMonadic: true, type: "Either" }
       }
@@ -51,20 +51,24 @@ const rule: Rule.RuleModule = {
 
       // Check for null/undefined checks on variables that might be Options
       if (node.type === "BinaryExpression") {
-        if ((node.operator === "===" || node.operator === "!==") &&
-            ((node.left.type === "Literal" && (node.left.value === null || node.left.value === undefined)) ||
-             (node.right.type === "Literal" && (node.right.value === null || node.right.value === undefined)))) {
+        if (
+          (node.operator === "===" || node.operator === "!==") &&
+          ((node.left.type === "Literal" && (node.left.value === null || node.left.value === undefined)) ||
+            (node.right.type === "Literal" && (node.right.value === null || node.right.value === undefined)))
+        ) {
           // This might be checking an Option that hasn't been properly typed
           return { isMonadic: true, type: "Option" }
         }
-        
+
         // Check for == or != with undefined
-        if ((node.operator === "==" || node.operator === "!=" || node.operator === "===" || node.operator === "!==")) {
-          const leftIsUndefined = (node.left.type === "Identifier" && node.left.name === "undefined") ||
-                                 (node.left.type === "Literal" && node.left.value === undefined)
-          const rightIsUndefined = (node.right.type === "Identifier" && node.right.name === "undefined") ||
-                                  (node.right.type === "Literal" && node.right.value === undefined)
-          
+        if (node.operator === "==" || node.operator === "!=" || node.operator === "===" || node.operator === "!==") {
+          const leftIsUndefined =
+            (node.left.type === "Identifier" && node.left.name === "undefined") ||
+            (node.left.type === "Literal" && node.left.value === undefined)
+          const rightIsUndefined =
+            (node.right.type === "Identifier" && node.right.name === "undefined") ||
+            (node.right.type === "Literal" && node.right.value === undefined)
+
           if (leftIsUndefined || rightIsUndefined) {
             return { isMonadic: true, type: "Option" }
           }
@@ -77,7 +81,7 @@ const rule: Rule.RuleModule = {
     function analyzeIfStatement(node: ASTNode) {
       const test = node.test
       const monadicInfo = isMonadicCheck(test)
-      
+
       if (!monadicInfo.isMonadic) return
 
       // Don't analyze if this is part of a larger if/else chain
@@ -115,7 +119,7 @@ const rule: Rule.RuleModule = {
         if (monadicInfo.isMonadic) {
           context.report({
             node,
-            messageId: "preferFoldTernary", 
+            messageId: "preferFoldTernary",
             data: { type: monadicInfo.type },
           })
         }

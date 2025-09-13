@@ -1,30 +1,30 @@
-import { describe } from 'vitest'
-import { ruleTester } from '../utils/rule-tester'
-import rule from '../../src/rules/no-imperative-loops'
+import { describe } from "vitest"
+import { ruleTester } from "../utils/rule-tester"
+import rule from "../../src/rules/no-imperative-loops"
 
-describe('no-imperative-loops', () => {
-  ruleTester.run('no-imperative-loops', rule, {
+describe("no-imperative-loops", () => {
+  ruleTester.run("no-imperative-loops", rule, {
     valid: [
       // Using functional methods
       {
-        name: 'Using forEach is preferred',
-        code: 'items.forEach(item => console.log(item))',
+        name: "Using forEach is preferred",
+        code: "items.forEach(item => console.log(item))",
       },
       {
-        name: 'Using map is preferred',
-        code: 'const doubled = numbers.map(n => n * 2)',
+        name: "Using map is preferred",
+        code: "const doubled = numbers.map(n => n * 2)",
       },
       {
-        name: 'Using filter is preferred',
-        code: 'const evens = numbers.filter(n => n % 2 === 0)',
+        name: "Using filter is preferred",
+        code: "const evens = numbers.filter(n => n % 2 === 0)",
       },
       {
-        name: 'Using reduce is preferred',
-        code: 'const sum = numbers.reduce((acc, n) => acc + n, 0)',
+        name: "Using reduce is preferred",
+        code: "const sum = numbers.reduce((acc, n) => acc + n, 0)",
       },
       // Non-loop statements
       {
-        name: 'Non-loop statements are allowed',
+        name: "Non-loop statements are allowed",
         code: `
           function processData(data: string) {
             return data.toUpperCase()
@@ -35,7 +35,7 @@ describe('no-imperative-loops', () => {
     invalid: [
       // Basic for loop
       {
-        name: 'For loop should use functional methods',
+        name: "For loop should use functional methods",
         code: `
           for (let i = 0; i < items.length; i++) {
             console.log(items[i])
@@ -43,13 +43,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForLoop',
+            messageId: "noForLoop",
           },
         ],
       },
       // For...in loop
       {
-        name: 'For...in loop should use functional methods',
+        name: "For...in loop should use functional methods",
         code: `
           for (const key in obj) {
             console.log(obj[key])
@@ -57,13 +57,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForInLoop',
+            messageId: "noForInLoop",
           },
         ],
       },
       // For...of loop
       {
-        name: 'For...of loop should use functional methods',
+        name: "For...of loop should use functional methods",
         code: `
           for (const item of items) {
             console.log(item)
@@ -71,13 +71,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForOfLoop',
+            messageId: "noForOfLoop",
           },
         ],
       },
       // While loop
       {
-        name: 'While loop should use functional methods',
+        name: "While loop should use functional methods",
         code: `
           let i = 0
           while (i < items.length) {
@@ -87,13 +87,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noWhileLoop',
+            messageId: "noWhileLoop",
           },
         ],
       },
       // Do...while loop
       {
-        name: 'Do...while loop should use functional methods',
+        name: "Do...while loop should use functional methods",
         code: `
           let i = 0
           do {
@@ -103,13 +103,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noDoWhileLoop',
+            messageId: "noDoWhileLoop",
           },
         ],
       },
       // For loop with array.push (transformation pattern)
       {
-        name: 'For loop with push should use map',
+        name: "For loop with push should use map",
         code: `
           const results = []
           for (let i = 0; i < items.length; i++) {
@@ -118,13 +118,13 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForLoop',
+            messageId: "noForLoop",
           },
         ],
       },
       // Multiple loops
       {
-        name: 'Multiple loops should all be flagged',
+        name: "Multiple loops should all be flagged",
         code: `
           for (let i = 0; i < items.length; i++) {
             console.log(items[i])
@@ -140,19 +140,19 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForLoop',
+            messageId: "noForLoop",
           },
           {
-            messageId: 'noForOfLoop',
+            messageId: "noForOfLoop",
           },
           {
-            messageId: 'noWhileLoop',
+            messageId: "noWhileLoop",
           },
         ],
       },
       // Nested loops
       {
-        name: 'Nested loops should be flagged',
+        name: "Nested loops should be flagged",
         code: `
           for (let i = 0; i < matrix.length; i++) {
             for (let j = 0; j < matrix[i].length; j++) {
@@ -162,10 +162,10 @@ describe('no-imperative-loops', () => {
         `,
         errors: [
           {
-            messageId: 'noForLoop',
+            messageId: "noForLoop",
           },
           {
-            messageId: 'noForLoop',
+            messageId: "noForLoop",
           },
         ],
       },

@@ -1,13 +1,13 @@
-import { describe } from 'vitest'
-import { ruleTester } from '../utils/rule-tester'
-import rule from '../../src/rules/prefer-either'
+import { describe } from "vitest"
+import { ruleTester } from "../utils/rule-tester"
+import rule from "../../src/rules/prefer-either"
 
-describe('prefer-either', () => {
-  ruleTester.run('prefer-either', rule, {
+describe("prefer-either", () => {
+  ruleTester.run("prefer-either", rule, {
     valid: [
       // Using Either instead of try/catch
       {
-        name: 'Using Either is allowed',
+        name: "Using Either is allowed",
         code: `
           function safeParse(json: string): Either<Error, object> {
             return Either.right(JSON.parse(json))
@@ -16,7 +16,7 @@ describe('prefer-either', () => {
       },
       // No error handling
       {
-        name: 'Functions without error handling are allowed',
+        name: "Functions without error handling are allowed",
         code: `
           function add(a: number, b: number): number {
             return a + b
@@ -25,7 +25,7 @@ describe('prefer-either', () => {
       },
       // Rethrowing in catch blocks (common pattern)
       {
-        name: 'Rethrowing in catch blocks is allowed',
+        name: "Rethrowing in catch blocks is allowed",
         code: `
           function handleError() {
             try {
@@ -41,7 +41,7 @@ describe('prefer-either', () => {
     invalid: [
       // Try/catch block
       {
-        name: 'Try/catch should use Either',
+        name: "Try/catch should use Either",
         code: `
           function parseJson(json: string) {
             try {
@@ -53,13 +53,13 @@ describe('prefer-either', () => {
         `,
         errors: [
           {
-            messageId: 'preferEitherOverTryCatch',
+            messageId: "preferEitherOverTryCatch",
           },
         ],
       },
       // Throw statement
       {
-        name: 'Throw statement should use Either.left',
+        name: "Throw statement should use Either.left",
         code: `
           function validateAge(age: number) {
             if (age < 0) {
@@ -70,13 +70,13 @@ describe('prefer-either', () => {
         `,
         errors: [
           {
-            messageId: 'preferEitherOverThrow',
+            messageId: "preferEitherOverThrow",
           },
         ],
       },
       // Function with throw and no Either return type
       {
-        name: 'Function with throw should return Either',
+        name: "Function with throw should return Either",
         code: `
           function divide(a: number, b: number): number {
             if (b === 0) {
@@ -87,17 +87,17 @@ describe('prefer-either', () => {
         `,
         errors: [
           {
-            messageId: 'preferEitherReturn',
-            data: { type: 'number' },
+            messageId: "preferEitherReturn",
+            data: { type: "number" },
           },
           {
-            messageId: 'preferEitherOverThrow',
+            messageId: "preferEitherOverThrow",
           },
         ],
       },
       // Multiple try/catch blocks
       {
-        name: 'Multiple try/catch blocks should use Either',
+        name: "Multiple try/catch blocks should use Either",
         code: `
           function complexOperation() {
             try {
@@ -115,10 +115,10 @@ describe('prefer-either', () => {
         `,
         errors: [
           {
-            messageId: 'preferEitherOverTryCatch',
+            messageId: "preferEitherOverTryCatch",
           },
           {
-            messageId: 'preferEitherOverTryCatch',
+            messageId: "preferEitherOverTryCatch",
           },
         ],
       },

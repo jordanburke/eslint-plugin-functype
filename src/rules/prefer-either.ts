@@ -34,16 +34,17 @@ const rule: Rule.RuleModule = {
 
     function isInTestFile() {
       const filename = context.getFilename()
-      return /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
-             filename.includes("__tests__") ||
-             filename.includes("/test/") ||
-             filename.includes("/tests/")
+      return (
+        /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
+        filename.includes("__tests__") ||
+        filename.includes("/test/") ||
+        filename.includes("/tests/")
+      )
     }
-
 
     function hasThrowStatementsOutsideCatch(node: ASTNode): boolean {
       if (!node) return false
-      
+
       if (node.type === "ThrowStatement") {
         // Check if this throw is inside a catch block
         let parent = node.parent
@@ -53,10 +54,10 @@ const rule: Rule.RuleModule = {
         }
         return true
       }
-      
+
       // Skip catch blocks when recursing
       if (node.type === "CatchClause") return false
-      
+
       // Recursively check child nodes
       for (const key in node) {
         if (key === "parent") continue // Avoid circular references
@@ -71,7 +72,7 @@ const rule: Rule.RuleModule = {
           return true
         }
       }
-      
+
       return false
     }
 
@@ -79,14 +80,14 @@ const rule: Rule.RuleModule = {
       TryStatement(node: ASTNode) {
         // Allow try/catch in test files
         if (allowThrowInTests && isInTestFile()) return
-        
+
         // Allow try/catch that re-throws in the catch block (even with logging)
         if (node.handler && node.handler.body) {
           const catchBody = node.handler.body.body
           const hasRethrow = catchBody.some((stmt: ASTNode) => stmt.type === "ThrowStatement")
           if (hasRethrow) return
         }
-        
+
         context.report({
           node,
           messageId: "preferEitherOverTryCatch",
@@ -113,7 +114,7 @@ const rule: Rule.RuleModule = {
       FunctionDeclaration(node: ASTNode) {
         // Allow functions in test files
         if (allowThrowInTests && isInTestFile()) return
-        
+
         if (!node.body) return
 
         // Only report function-level errors if there are throws NOT in catch blocks
@@ -124,7 +125,7 @@ const rule: Rule.RuleModule = {
           if (returnType) {
             const sourceCode = context.sourceCode
             const returnTypeText = sourceCode.getText(returnType)
-            
+
             // Don't report if already using Either
             if (!returnTypeText.includes("Either")) {
               context.report({
@@ -136,7 +137,6 @@ const rule: Rule.RuleModule = {
           }
         }
       },
-
     }
   },
 }

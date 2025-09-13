@@ -1,6 +1,6 @@
-import { RuleTester } from '@typescript-eslint/rule-tester'
-import tsParser from '@typescript-eslint/parser'
-import * as vitest from 'vitest'
+import { RuleTester } from "@typescript-eslint/rule-tester"
+import tsParser from "@typescript-eslint/parser"
+import * as vitest from "vitest"
 
 // Configure RuleTester to use Vitest
 RuleTester.afterAll = vitest.afterAll
@@ -14,7 +14,7 @@ export const ruleTester = new RuleTester({
     parser: tsParser,
     parserOptions: {
       ecmaVersion: 2020,
-      sourceType: 'module',
+      sourceType: "module",
       ecmaFeatures: {
         jsx: true,
       },
@@ -29,7 +29,7 @@ export type ValidTestCase = {
   options?: unknown[]
   languageOptions?: {
     ecmaVersion?: number
-    sourceType?: 'script' | 'module'
+    sourceType?: "script" | "module"
     globals?: Record<string, boolean>
   }
 }
