@@ -10,7 +10,6 @@ const rule: Rule.RuleModule = {
       category: "Stylistic Issues",
       recommended: true,
     },
-    fixable: "code",
     schema: [
       {
         type: "object",
@@ -96,9 +95,6 @@ const rule: Rule.RuleModule = {
             type: elementType,
             arrayType: fullType,
           },
-          fix(fixer) {
-            return fixer.replaceText(node, `List<${elementType}>`)
-          },
         })
       },
 
@@ -133,9 +129,6 @@ const rule: Rule.RuleModule = {
               type: typeParam || "T",
               arrayType: fullType,
             },
-            fix(fixer) {
-              return fixer.replaceText(node, `List<${typeParam || "T"}>`)
-            },
           })
         }
 
@@ -150,9 +143,6 @@ const rule: Rule.RuleModule = {
             data: {
               type: typeParam || "T",
               arrayType: fullType,
-            },
-            fix(fixer) {
-              return fixer.replaceText(node, `List<${typeParam || "T"}>`)
             },
           })
         }
@@ -214,11 +204,6 @@ const rule: Rule.RuleModule = {
         context.report({
           node,
           messageId: "preferListLiteral",
-          fix(fixer) {
-            const sourceCode = context.sourceCode
-            const elements = sourceCode.getText(node)
-            return fixer.replaceText(node, `List.from(${elements})`)
-          },
         })
       },
     }

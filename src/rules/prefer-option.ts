@@ -10,7 +10,6 @@ const rule: Rule.RuleModule = {
       category: "Stylistic Issues",
       recommended: true,
     },
-    fixable: "code",
     schema: [
       {
         type: "object",
@@ -73,9 +72,6 @@ const rule: Rule.RuleModule = {
             data: {
               type: nonNullTypeText,
               nullable: fullType,
-            },
-            fix(fixer) {
-              return fixer.replaceText(node, `Option<${nonNullTypeText}>`)
             },
           })
         }

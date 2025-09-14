@@ -47,6 +47,7 @@ describe("no-get-unsafe", () => {
             data: { method: "get" },
           },
         ],
+        output: "const value = someOption.getOrElse(/* TODO: provide default value */)",
       },
       // Unsafe getOrThrow() call
       {
@@ -58,6 +59,7 @@ describe("no-get-unsafe", () => {
             data: { method: "getOrThrow" },
           },
         ],
+        output: "const value = either.getOrElse(/* TODO: provide default value */)",
       },
       // Unsafe unwrap() call
       {
@@ -69,6 +71,7 @@ describe("no-get-unsafe", () => {
             data: { method: "unwrap" },
           },
         ],
+        output: "const value = result.getOrElse(/* TODO: provide default value */)",
       },
       // Unsafe expect() call
       {
@@ -80,6 +83,7 @@ describe("no-get-unsafe", () => {
             data: { method: "expect" },
           },
         ],
+        output: "const value = option.getOrElse(/* TODO: provide default value */)",
       },
       // Chained method calls
       {
@@ -91,6 +95,7 @@ describe("no-get-unsafe", () => {
             data: { method: "get" },
           },
         ],
+        output: 'const value = Some("test").map(x => x.toUpperCase()).getOrElse(/* TODO: provide default value */)',
       },
       // Method call in assignment
       {
@@ -107,6 +112,12 @@ describe("no-get-unsafe", () => {
             data: { method: "get" },
           },
         ],
+        output: `
+          function processOption(opt: Option<string>) {
+            const result = opt.getOrElse(/* TODO: provide default value */)
+            return result.toUpperCase()
+          }
+        `,
       },
       // Multiple unsafe calls
       {
@@ -130,6 +141,11 @@ describe("no-get-unsafe", () => {
             data: { method: "unwrap" },
           },
         ],
+        output: `
+          const value1 = option1.getOrElse(/* TODO: provide default value */)
+          const value2 = option2.getOrElse(/* TODO: provide default value */)
+          const value3 = result.getOrElse(/* TODO: provide default value */)
+        `,
       },
     ],
   })

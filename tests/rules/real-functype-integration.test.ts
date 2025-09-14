@@ -59,11 +59,6 @@ describe("real-functype-integration", () => {
               data: { type: "string", nullable: "string | null" },
             },
           ],
-          output: `
-            import { Option } from 'functype'
-            const value: Option<string> = null
-            const unused = Option.some("test") // functype is available but not used for value
-          `,
         },
       ],
     })
@@ -117,11 +112,6 @@ describe("real-functype-integration", () => {
               messageId: "preferListLiteral",
             },
           ],
-          output: `
-            import { List } from 'functype'
-            const items = List.from([1, 2, 3])
-            const unused = List.from([4, 5, 6]) // functype is available but not used for items
-          `,
         },
       ],
     })

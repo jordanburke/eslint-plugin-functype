@@ -9,6 +9,7 @@ const rule: Rule.RuleModule = {
       category: "Possible Errors",
       recommended: true,
     },
+    fixable: "code",
     schema: [
       {
         type: "object",
@@ -106,6 +107,31 @@ const rule: Rule.RuleModule = {
             node,
             messageId: "noUnsafeGet",
             data: { method: methodName },
+            fix(fixer) {
+              const sourceCode = context.sourceCode
+              const objectText = sourceCode.getText(node.callee.object)
+
+              // Choose safer alternative based on method name
+              let replacement: string
+              if (methodName === "get") {
+                // Replace .get() with .getOrElse(/* provide default */)
+                replacement = `${objectText}.getOrElse(/* TODO: provide default value */)`
+              } else if (methodName === "getOrThrow") {
+                // Replace .getOrThrow() with .getOrElse()
+                replacement = `${objectText}.getOrElse(/* TODO: provide default value */)`
+              } else if (methodName === "unwrap") {
+                // Replace .unwrap() with .getOrElse()
+                replacement = `${objectText}.getOrElse(/* TODO: provide default value */)`
+              } else if (methodName === "expect") {
+                // Replace .expect(msg) with .getOrElse()
+                replacement = `${objectText}.getOrElse(/* TODO: provide default value */)`
+              } else {
+                // Generic fallback
+                replacement = `${objectText}.getOrElse(/* TODO: provide default value */)`
+              }
+
+              return fixer.replaceText(node, replacement)
+            },
           })
         }
       },

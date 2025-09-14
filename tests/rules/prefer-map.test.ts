@@ -84,6 +84,7 @@ describe("prefer-map", () => {
             messageId: "preferMapChain",
           },
         ],
+        output: "items.map(item => item.name)",
       },
       // Manual push inside forEach
       {

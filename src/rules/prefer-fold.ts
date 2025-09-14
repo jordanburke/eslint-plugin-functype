@@ -1,4 +1,4 @@
-import type { Rule } from "eslint"
+import type { Rule, SourceCode } from "eslint"
 import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
@@ -9,6 +9,7 @@ const rule: Rule.RuleModule = {
       category: "Best Practices",
       recommended: true,
     },
+    fixable: "code",
     schema: [
       {
         type: "object",
@@ -31,6 +32,134 @@ const rule: Rule.RuleModule = {
   create(context) {
     const options = context.options[0] || {}
     const minComplexity = options.minComplexity || 2
+
+    function extractBodyForFold(node: ASTNode, sourceCode: SourceCode): string {
+      if (node.type === "BlockStatement") {
+        const statements = node.body
+        if (statements.length === 1 && statements[0].type === "ReturnStatement") {
+          // Extract just the return value, not the return statement
+          return sourceCode.getText(statements[0].argument)
+        } else {
+          // For complex blocks, keep the full structure but remove outer braces
+          return sourceCode.getText(node).slice(1, -1).trim()
+        }
+      } else {
+        return sourceCode.getText(node)
+      }
+    }
+
+    function generateFoldFromIf(node: ASTNode): string | null {
+      const sourceCode = context.sourceCode
+
+      if (node.type !== "IfStatement") return null
+
+      const test = node.test
+      const consequent = node.consequent
+      const alternate = node.alternate
+
+      if (!consequent || !alternate) return null
+
+      // Extract the monadic object from the test
+      let monadicObj: string | null = null
+      let isNegated = false
+
+      // Handle patterns like option.isSome(), either.isLeft(), etc.
+      if (test.type === "CallExpression" && test.callee.type === "MemberExpression") {
+        const methodName = test.callee.property.name
+        monadicObj = sourceCode.getText(test.callee.object)
+
+        if (methodName === "isSome" || methodName === "isRight" || methodName === "isSuccess") {
+          isNegated = false
+        } else if (
+          methodName === "isNone" ||
+          methodName === "isEmpty" ||
+          methodName === "isLeft" ||
+          methodName === "isFailure"
+        ) {
+          isNegated = true
+        }
+      }
+
+      if (!monadicObj) return null
+
+      // Only handle simple cases - single return statements in blocks, no nested if statements
+      if (consequent.type === "BlockStatement") {
+        if (consequent.body.length !== 1 || consequent.body[0].type !== "ReturnStatement") {
+          return null // Too complex, don't auto-fix
+        }
+      }
+
+      if (alternate.type === "BlockStatement") {
+        if (alternate.body.length !== 1 || alternate.body[0].type !== "ReturnStatement") {
+          return null // Too complex, don't auto-fix
+        }
+      } else if (alternate.type === "IfStatement") {
+        return null // Nested if/else is too complex for simple fold pattern
+      }
+
+      // Extract consequent and alternate bodies
+      const thenBody = extractBodyForFold(consequent, sourceCode)
+      const elseBody = extractBodyForFold(alternate, sourceCode)
+
+      // Generate fold expression
+      if (isNegated) {
+        return `${monadicObj}.fold(() => ${thenBody}, () => ${elseBody})`
+      } else {
+        return `${monadicObj}.fold(() => ${elseBody}, (value) => ${thenBody})`
+      }
+    }
+
+    function generateFoldFromTernary(node: ASTNode): string | null {
+      const sourceCode = context.sourceCode
+
+      if (node.type !== "ConditionalExpression") return null
+
+      const test = node.test
+      const consequent = node.consequent
+      const alternate = node.alternate
+
+      // Extract the monadic object from the test
+      let monadicObj: string | null = null
+      let isNegated = false
+
+      if (test.type === "CallExpression" && test.callee.type === "MemberExpression") {
+        const methodName = test.callee.property.name
+        monadicObj = sourceCode.getText(test.callee.object)
+
+        if (methodName === "isSome" || methodName === "isRight" || methodName === "isSuccess") {
+          isNegated = false
+        } else if (
+          methodName === "isNone" ||
+          methodName === "isEmpty" ||
+          methodName === "isLeft" ||
+          methodName === "isFailure"
+        ) {
+          isNegated = true
+        }
+      }
+
+      if (!monadicObj) return null
+
+      const thenExpr = sourceCode.getText(consequent)
+      const elseExpr = sourceCode.getText(alternate)
+
+      // Generate fold expression
+      if (isNegated) {
+        return `${monadicObj}.fold(() => ${thenExpr}, () => ${elseExpr})`
+      } else {
+        return `${monadicObj}.fold(() => ${elseExpr}, (value) => ${thenExpr})`
+      }
+    }
+
+    function shouldAutoFix(node: ASTNode): boolean {
+      // Only auto-fix when we detect functype method calls (indicating it's already a functype instance)
+      if (node.type === "CallExpression" && node.callee.type === "MemberExpression") {
+        const methodName = node.callee.property.name
+        // These methods indicate the object is already a functype instance
+        return ["isSome", "isNone", "isEmpty", "isRight", "isLeft", "isSuccess", "isFailure"].includes(methodName)
+      }
+      return false
+    }
 
     function isMonadicCheck(node: ASTNode): { isMonadic: boolean; type: string } {
       const sourceCode = context.sourceCode
@@ -105,6 +234,17 @@ const rule: Rule.RuleModule = {
           node,
           messageId: "preferFold",
           data: { type: monadicInfo.type },
+          fix(fixer) {
+            // Only auto-fix if we can detect it's already a functype instance
+            if (!shouldAutoFix(node.test)) {
+              return null
+            }
+            const replacement = generateFoldFromIf(node)
+            if (replacement) {
+              return fixer.replaceText(node, replacement)
+            }
+            return null
+          },
         })
       }
     }
@@ -121,6 +261,17 @@ const rule: Rule.RuleModule = {
             node,
             messageId: "preferFoldTernary",
             data: { type: monadicInfo.type },
+            fix(fixer) {
+              // Only auto-fix if we can detect it's already a functype instance
+              if (!shouldAutoFix(node.test)) {
+                return null
+              }
+              const replacement = generateFoldFromTernary(node)
+              if (replacement) {
+                return fixer.replaceText(node, replacement)
+              }
+              return null
+            },
           })
         }
       },

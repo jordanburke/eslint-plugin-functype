@@ -39,10 +39,6 @@ describe("functype-integration", () => {
               data: { type: "string", nullable: "string | null" },
             },
           ],
-          output: `
-            import { Option } from 'functype'
-            const value: Option<string> = null
-          `,
         },
       ],
     })
@@ -82,10 +78,6 @@ describe("functype-integration", () => {
               messageId: "preferListLiteral",
             },
           ],
-          output: `
-            import { Option } from 'functype'
-            const items = List.from([1, 2, 3])
-          `,
         },
       ],
     })

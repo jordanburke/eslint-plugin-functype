@@ -52,6 +52,9 @@ describe("prefer-fold", () => {
             data: { type: "Option" },
           },
         ],
+        output: `
+          option.fold(() => "default", (value) => option.get())
+        `,
       },
       // Ternary operator with isRight check
       {
@@ -63,6 +66,7 @@ describe("prefer-fold", () => {
             data: { type: "Either" },
           },
         ],
+        output: 'const result = either.fold(() => "error", (value) => either.get())',
       },
       // Complex if/else if/else chain
       {

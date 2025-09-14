@@ -37,7 +37,6 @@ describe("prefer-option", () => {
             data: { type: "string", nullable: "string | null" },
           },
         ],
-        output: "const value: Option<string> = null",
       },
       // String or undefined
       {
@@ -49,7 +48,6 @@ describe("prefer-option", () => {
             data: { type: "string", nullable: "string | undefined" },
           },
         ],
-        output: "const value: Option<string> = undefined",
       },
       // String with both null and undefined
       {
@@ -61,7 +59,6 @@ describe("prefer-option", () => {
             data: { type: "string", nullable: "string | null | undefined" },
           },
         ],
-        output: "const value: Option<string> = null",
       },
       // Function return type
       {
@@ -73,7 +70,6 @@ describe("prefer-option", () => {
             data: { type: "string", nullable: "string | null" },
           },
         ],
-        output: "function getValue(): Option<string> { return null }",
       },
       // Complex type with null
       {
@@ -88,7 +84,6 @@ describe("prefer-option", () => {
             },
           },
         ],
-        output: "const user: Option<{ name: string; age: number }> = null",
       },
       // Array type with null
       {
@@ -100,7 +95,6 @@ describe("prefer-option", () => {
             data: { type: "string[]", nullable: "string[] | null" },
           },
         ],
-        output: "const items: Option<string[]> = null",
       },
     ],
   })

@@ -9,6 +9,7 @@ const rule: Rule.RuleModule = {
       category: "Best Practices",
       recommended: true,
     },
+    fixable: "code",
     schema: [
       {
         type: "object",
@@ -36,6 +37,27 @@ const rule: Rule.RuleModule = {
     const options = context.options[0] || {}
     const checkArrayMethods = options.checkArrayMethods !== false
     const checkForLoops = options.checkForLoops !== false
+
+    function isForEachToMapSafe(node: ASTNode): boolean {
+      // Only auto-fix simple forEach → map transformations on expressions that return values
+      // This is safe because both native arrays and functype Lists have these methods
+      if (
+        node.type !== "CallExpression" ||
+        node.callee.type !== "MemberExpression" ||
+        node.callee.property.name !== "forEach"
+      ) {
+        return false
+      }
+
+      // Check if the callback returns a value (simple property access pattern)
+      const callback = node.arguments[0]
+      if (callback && (callback.type === "ArrowFunctionExpression" || callback.type === "FunctionExpression")) {
+        const body = callback.body
+        // Simple property access in arrow function (e.g., item => item.name)
+        return body.type === "MemberExpression"
+      }
+      return false
+    }
 
     function isTransformationLoop(node: ASTNode): boolean {
       if (!node.body || node.body.type !== "BlockStatement") return false
@@ -119,6 +141,19 @@ const rule: Rule.RuleModule = {
             context.report({
               node,
               messageId: "preferMapChain",
+              fix(fixer) {
+                // Only auto-fix safe forEach → map transformations
+                if (!isForEachToMapSafe(node)) {
+                  return null
+                }
+
+                const sourceCode = context.sourceCode
+                const text = sourceCode.getText(node)
+
+                // Simple replacement: forEach -> map
+                const fixedText = text.replace(/\.forEach\s*\(/g, ".map(")
+                return fixer.replaceText(node, fixedText)
+              },
             })
           }
         }

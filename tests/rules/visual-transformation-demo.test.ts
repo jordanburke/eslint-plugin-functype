@@ -13,22 +13,19 @@ describe("Visual Transformation Demo", () => {
         valid: [],
         invalid: showTransformations([
           {
-            name: "🔧 Nullable User Function → Option<User>",
+            name: "🚫 Nullable User Function → Option<User> (Manual Fix Required)",
             code: "function findUser(id: string): User | null { return getUser(id) }",
             errors: [{ messageId: "preferOption" }],
-            output: "function findUser(id: string): Option<User> { return getUser(id) }",
           },
           {
-            name: "🔧 Complex Nullable Type → Option<T>",
+            name: "🚫 Complex Nullable Type → Option<T> (Manual Fix Required)",
             code: "const userProfile: { name: string; email: string } | null = getUserProfile()",
             errors: [{ messageId: "preferOption" }],
-            output: "const userProfile: Option<{ name: string; email: string }> = getUserProfile()",
           },
           {
-            name: "🔧 Optional Configuration → Option<Config>",
+            name: "🚫 Optional Configuration → Option<Config> (Manual Fix Required)",
             code: "const config: AppConfig | undefined = loadConfig()",
             errors: [{ messageId: "preferOption" }],
-            output: "const config: Option<AppConfig> = loadConfig()",
           },
         ]),
       },
@@ -44,28 +41,24 @@ describe("Visual Transformation Demo", () => {
         valid: [],
         invalid: showTransformations([
           {
-            name: "🔧 Array Type → List<T>",
+            name: "🚫 Array Type → List<T> (Manual Fix Required)",
             code: 'const userIds: string[] = ["user1", "user2", "user3"]',
             errors: [{ messageId: "preferList" }],
-            output: 'const userIds: List<string> = ["user1", "user2", "user3"]',
           },
           {
-            name: "🔧 Array<T> → List<T>",
+            name: "🚫 Array<T> → List<T> (Manual Fix Required)",
             code: "const scores: Array<number> = [85, 92, 78, 96]",
             errors: [{ messageId: "preferList" }],
-            output: "const scores: List<number> = [85, 92, 78, 96]",
           },
           {
-            name: "🔧 Array Literal → List.from()",
+            name: "🚫 Array Literal → List.from() (Manual Fix Required)",
             code: 'const colors = ["red", "green", "blue"]',
             errors: [{ messageId: "preferListLiteral" }],
-            output: 'const colors = List.from(["red", "green", "blue"])',
           },
           {
-            name: "🔧 Function Parameter Array → List<T>",
+            name: "🚫 Function Parameter Array → List<T> (Manual Fix Required)",
             code: "function processItems(items: ProcessedItem[]): void { }",
             errors: [{ messageId: "preferList" }],
-            output: "function processItems(items: List<ProcessedItem>): void { }",
           },
         ]),
       },

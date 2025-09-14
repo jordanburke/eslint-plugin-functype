@@ -32,7 +32,6 @@ describe("prefer-list", () => {
             data: { type: "string", arrayType: "string[]" },
           },
         ],
-        output: 'const items: List<string> = ["a", "b", "c"]',
       },
       // Array<T> syntax
       {
@@ -44,7 +43,6 @@ describe("prefer-list", () => {
             data: { type: "string", arrayType: "Array<string>" },
           },
         ],
-        output: 'const items: List<string> = ["a", "b", "c"]',
       },
       // ReadonlyArray<T> should still suggest List
       {
@@ -56,7 +54,6 @@ describe("prefer-list", () => {
             data: { type: "string", arrayType: "ReadonlyArray<string>" },
           },
         ],
-        output: 'const items: List<string> = ["a", "b", "c"]',
       },
       // Array literal
       {
@@ -67,7 +64,6 @@ describe("prefer-list", () => {
             messageId: "preferListLiteral",
           },
         ],
-        output: 'const items = List.from(["a", "b", "c"])',
       },
       // Complex type array
       {
@@ -82,7 +78,6 @@ describe("prefer-list", () => {
             },
           },
         ],
-        output: "const users: List<{ name: string; age: number }> = []",
       },
       // Function parameter
       {
@@ -94,7 +89,6 @@ describe("prefer-list", () => {
             data: { type: "string", arrayType: "string[]" },
           },
         ],
-        output: "function processItems(items: List<string>): void {}",
       },
       // Function return type
       {
@@ -106,7 +100,6 @@ describe("prefer-list", () => {
             data: { type: "string", arrayType: "string[]" },
           },
         ],
-        output: "function getItems(): List<string> { return [] }",
       },
       // Nested array literal in assignment
       {
@@ -117,7 +110,6 @@ describe("prefer-list", () => {
             messageId: "preferListLiteral",
           },
         ],
-        output: "const matrix = List.from([[1, 2], [3, 4]])",
       },
     ],
   })
