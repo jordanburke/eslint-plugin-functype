@@ -1,6 +1,7 @@
 import type { Rule } from "eslint"
+
 import type { ASTNode } from "../types/ast"
-import { getFunctypeImportsLegacy, isFunctypeType, isAlreadyUsingFunctype } from "../utils/functype-detection"
+import { getFunctypeImportsLegacy, isAlreadyUsingFunctype, isFunctypeType } from "../utils/functype-detection"
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -79,4 +80,4 @@ const rule: Rule.RuleModule = {
   },
 }
 
-export = rule
+export default rule

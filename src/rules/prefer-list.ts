@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+
 import type { ASTNode } from "../types/ast"
 import { getFunctypeImportsLegacy, isFunctypeCall } from "../utils/functype-detection"
 
@@ -204,4 +205,4 @@ const rule: Rule.RuleModule = {
   },
 }
 
-export = rule
+export default rule

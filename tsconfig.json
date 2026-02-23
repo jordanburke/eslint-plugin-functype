@@ -1,22 +1,9 @@
 {
+  "extends": "ts-builds/tsconfig",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "lib": ["ES2022"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "strict": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    // Additional settings for better IDE support with tsup
-    "noEmit": true,
-    "isolatedModules": true
+    "rootDir": "src",
+    "outDir": "lib"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "exclude": ["node_modules", "dist", "lib", "tests"]
 }

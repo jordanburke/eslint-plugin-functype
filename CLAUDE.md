@@ -8,36 +8,45 @@ eslint-plugin-functype is a custom ESLint plugin providing 9 rules for functiona
 
 **Development Requirements:** Node.js 22.0.0 or higher (for building/testing only - end users can run the plugin on any Node version supported by ESLint).
 
-**New Features:**
+**Build Toolchain:** Uses [ts-builds](https://github.com/jordanburke/ts-builds) for standardized TypeScript library tooling (tsdown, ESLint, Prettier, Vitest).
+
+**Output Format:** ESM-only (`"type": "module"`). ESLint 10+ supports ESM plugins natively via flat config.
+
+**Features:**
 
 - **Visual Test Output**: Enhanced test runner shows beautiful before/after transformations with colorized diffs
-- **Do Notation Support**: New rule suggests functype's Do notation for complex monadic compositions
+- **Do Notation Support**: Rule suggests functype's Do notation for complex monadic compositions
 
 ## Commands
+
+All commands delegate to `ts-builds` CLI. Run `npx ts-builds help` for full reference.
 
 ### Build and Development
 
 ```bash
-# Build with tsup (includes typecheck)
-pnpm run build
+# Full quality pipeline: format → lint → typecheck → test → build
+pnpm validate
 
-# Watch mode for development
-pnpm run build:watch
+# Build with tsdown (ESM output to dist/)
+pnpm build
 
-# Lint the codebase
-pnpm run lint
+# Watch mode for development (dev builds to lib/)
+pnpm dev
+
+# Lint the codebase (auto-fix)
+pnpm lint
 
 # Type check only
-pnpm run typecheck
+pnpm typecheck
 
-# Run all quality checks
-pnpm run check
+# Format with Prettier
+pnpm format
 ```
 
 ### Testing
 
 ```bash
-# Run all tests (100+ tests across 11 suites)
+# Run all tests (116 tests across 12 suites)
 pnpm test
 
 # Watch mode
@@ -60,26 +69,26 @@ pnpm test tests/rules/visual-transformation-demo.test.ts
 
 ```bash
 # List all rules (requires build first)
-pnpm run build && pnpm run list-rules
+pnpm build && pnpm list-rules
 
 # Show rule configurations
-pnpm run list-rules:verbose
+pnpm list-rules:verbose
 
 # Show usage examples
-pnpm run list-rules:usage
+pnpm list-rules:usage
 
 # Check peer dependencies
-pnpm run check-deps
+pnpm check-deps
 
 # Show CLI help
-pnpm run cli:help
+pnpm cli:help
 ```
 
 ### Publishing
 
 ```bash
-# Prepare for publishing (runs full quality pipeline)
-pnpm run prepublishOnly
+# Prepare for publishing (runs full validate pipeline)
+pnpm prepublishOnly
 ```
 
 ## Architecture
@@ -95,13 +104,13 @@ This plugin provides **custom ESLint rules** specifically designed for functiona
 
 ### Plugin Structure
 
-- **`src/index.ts`**: Main plugin entry point, exports rules object for ESLint 9+ flat config
+- **`src/index.ts`**: Main plugin entry point, exports rules object for ESLint 10+ flat config
 - **`src/rules/`**: 9 custom ESLint rules, each in separate files
 - **`src/utils/functype-detection.ts`**: Core utility for detecting functype library usage, including Do notation
 - **`src/types/ast.ts`**: TypeScript AST type definitions
 - **`src/cli/list-rules.ts`**: CLI tool for rule inspection
 - **`tests/utils/visual-rule-tester.ts`**: Enhanced test runner with before/after transformations
-- **`dist/`**: Compiled output (CommonJS for ESLint compatibility)
+- **`dist/`**: Compiled output (ESM `.js` + `.d.ts` declarations)
 
 ### Rule Architecture
 
@@ -143,9 +152,9 @@ The `functype-detection.ts` utility provides:
 - **Do Notation Detection**: Identifies Do blocks and $ helper usage
 - **Context Analysis**: Determines when functype patterns are already in use
 
-### Do Notation Integration (New)
+### Do Notation Integration
 
-The new `prefer-do-notation` rule detects patterns that benefit from functype's Do notation:
+The `prefer-do-notation` rule detects patterns that benefit from functype's Do notation:
 
 **Detected Patterns:**
 
@@ -170,14 +179,14 @@ const city = Do(function* () {
 
 ### Test Architecture
 
-- **Vitest**: Modern test runner with TypeScript support
+- **Vitest**: Modern test runner with TypeScript support (via ts-builds/vitest base config)
 - **@typescript-eslint/rule-tester**: Official ESLint rule testing utility
-- **99+ Tests**: Comprehensive coverage across all rules and edge cases
+- **116 Tests**: Comprehensive coverage across all rules and edge cases
 - **Integration Tests**: Real functype library usage validation
 - **Auto-Fix Verification**: Ensures fixes produce valid, compilable code
 - **Visual Test Runner**: Enhanced testing with colorized before/after transformations
 
-### Visual Test Output (New)
+### Visual Test Output
 
 The `VisualRuleTester` provides beautiful transformation visualization:
 
@@ -189,7 +198,7 @@ VisualRuleTester.run(
   {
     invalid: showTransformations([
       {
-        name: "🔧 Nullable User → Option<User>",
+        name: "Nullable User → Option<User>",
         code: "function getUser(): User | null { ... }",
         output: "function getUser(): Option<User> { ... }",
         errors: [{ messageId: "preferOption" }],
@@ -199,13 +208,6 @@ VisualRuleTester.run(
   { showAll: true },
 )
 ```
-
-**Features:**
-
-- **Colorized Output**: Red for violations, green for fixes
-- **Line-by-line Diffs**: Easy to see exact transformations
-- **Rule Context**: Shows which rule triggered each fix
-- **Error Details**: Displays violation messages and data
 
 Test structure:
 
@@ -223,17 +225,27 @@ ruleTester.run('rule-name', rule, {
 
 ### Build System
 
-- **tsup**: Fast esbuild-powered bundler optimized for libraries
-- **CommonJS Output**: Required for ESLint plugin compatibility
-- **TypeScript Integration**: Automatic `.d.ts` generation and type checking
+- **ts-builds + tsdown**: Standardized TypeScript library build toolchain
+- **ESM Output**: Native ES modules (`"type": "module"`) — ESLint 10+ supports ESM plugins
+- **TypeScript Integration**: Automatic `.d.ts` generation via tsdown with tsc declaration-only emit
 - **Source Maps**: Generated for debugging support
-- **Multiple Entry Points**: Plugin, CLI, and utilities compiled separately
+- **Multiple Entry Points**: All `src/**/*.ts` files compiled as separate entries
+- **Config Inheritance**: Extends ts-builds base configs for tsconfig, ESLint, Prettier, Vitest
+
+### Configuration Files
+
+- **`ts-builds.config.json`**: ts-builds CLI configuration (`useProjectEslint: true` since this IS an ESLint plugin)
+- **`tsdown.config.ts`**: Extends ts-builds/tsdown base, adds external deps (eslint, typescript-eslint, prettier)
+- **`eslint.config.mjs`**: Extends ts-builds/eslint base with project-specific overrides
+- **`vitest.config.ts`**: Extends ts-builds/vitest base
+- **`tsconfig.json`**: Extends ts-builds/tsconfig base (ESNext, strict, bundler resolution)
+- **`package.json` → `"prettier"`**: References ts-builds/prettier shared config
 
 ### Key Implementation Details
 
-#### ESLint 9+ Flat Config Only
+#### ESLint 10+ Flat Config Only
 
-The plugin is designed specifically for ESLint 9+ flat config format:
+The plugin is designed specifically for ESLint 10+ flat config format:
 
 ```javascript
 import functypePlugin from "eslint-plugin-functype"
@@ -281,7 +293,7 @@ This prevents false positives when developers are already using functype correct
 
 ## Available Rules
 
-The plugin now provides **9 custom ESLint rules**:
+The plugin provides **9 custom ESLint rules**:
 
 1. **prefer-option**: `T | null | undefined` → `Option<T>`
 2. **prefer-either**: try/catch blocks → `Either<E, T>`
@@ -291,7 +303,7 @@ The plugin now provides **9 custom ESLint rules**:
 6. **prefer-map**: imperative loops → `.map()` transformation
 7. **prefer-flatmap**: `.map().flat()` → `.flatMap()`
 8. **no-imperative-loops**: for/while loops → functional methods
-9. **prefer-do-notation**: complex chains → Do notation _(NEW)_
+9. **prefer-do-notation**: complex chains → Do notation
 
 ### Rule Usage Example
 
@@ -305,7 +317,7 @@ export default [
     rules: {
       "functype/prefer-option": "error",
       "functype/prefer-list": "error",
-      "functype/prefer-do-notation": "warn", // New rule
+      "functype/prefer-do-notation": "warn",
       "functype/no-imperative-loops": "error",
     },
   },

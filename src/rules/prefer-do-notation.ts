@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+
 import type { ASTNode } from "../types/ast"
 import { getFunctypeImports, isChainedMethodCall } from "../utils/functype-detection"
 

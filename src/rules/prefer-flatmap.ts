@@ -1,4 +1,5 @@
 import type { Rule } from "eslint"
+
 import type { ASTNode } from "../types/ast"
 
 const rule: Rule.RuleModule = {
@@ -206,4 +207,4 @@ const rule: Rule.RuleModule = {
   },
 }
 
-export = rule
+export default rule

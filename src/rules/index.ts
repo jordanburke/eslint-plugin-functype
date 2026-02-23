@@ -1,23 +1,23 @@
-import preferOption from "./prefer-option"
-import preferEither from "./prefer-either"
-import preferList from "./prefer-list"
 import noGetUnsafe from "./no-get-unsafe"
-import preferFold from "./prefer-fold"
-import preferMap from "./prefer-map"
-import preferFlatmap from "./prefer-flatmap"
 import noImperativeLoops from "./no-imperative-loops"
 import preferDoNotation from "./prefer-do-notation"
+import preferEither from "./prefer-either"
+import preferFlatmap from "./prefer-flatmap"
+import preferFold from "./prefer-fold"
+import preferList from "./prefer-list"
+import preferMap from "./prefer-map"
+import preferOption from "./prefer-option"
 
 export {
-  preferOption,
-  preferEither,
-  preferList,
   noGetUnsafe,
-  preferFold,
-  preferMap,
-  preferFlatmap,
   noImperativeLoops,
   preferDoNotation,
+  preferEither,
+  preferFlatmap,
+  preferFold,
+  preferList,
+  preferMap,
+  preferOption,
 }
 
 export default {

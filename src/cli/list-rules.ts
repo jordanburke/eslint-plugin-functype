@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 
-import fs from "fs"
-import path from "path"
-import { validatePeerDependencies, type ValidationResult } from "../utils/dependency-validator"
-
-// Remove unused type
-// type RuleSeverity = 'off' | 'warn' | 'error' | 0 | 1 | 2
+import plugin from "../index.js"
+import { validatePeerDependencies, type ValidationResult } from "../utils/dependency-validator.js"
 
 // Colors for console output
 const colors = {
@@ -97,72 +93,56 @@ async function main(): Promise<void> {
 
   console.log(colorize("🔧 ESLint Plugin Functype - Custom Rules", "bright"))
 
-  const distPath = path.join(__dirname, "..", "..", "dist")
-
-  if (!fs.existsSync(distPath)) {
-    console.error(colorize("❌ Build directory not found. Run `pnpm run build` first.", "red"))
+  if (!plugin.rules) {
+    console.error(colorize("❌ No rules found in plugin.", "red"))
     process.exit(1)
   }
 
-  // Load the plugin to get available rules
-  try {
-    const pluginPath = path.join(distPath, "index.js")
-    const plugin = require(pluginPath)
+  console.log(colorize("\n📦 Available Custom Rules:", "bright"))
+  console.log(colorize("=".repeat(40), "blue"))
 
-    if (!plugin.rules) {
-      console.error(colorize("❌ No rules found in plugin.", "red"))
-      process.exit(1)
+  const rules = Object.keys(plugin.rules)
+
+  rules.forEach((ruleName) => {
+    const rule = plugin.rules[ruleName]
+    const fullName = `functype/${ruleName}`
+
+    console.log(`\n${colorize("●", "green")} ${colorize(fullName, "bright")}`)
+
+    if (rule.meta?.docs?.description) {
+      console.log(`  ${colorize("Description:", "cyan")} ${rule.meta.docs.description}`)
     }
 
-    console.log(colorize("\n📦 Available Custom Rules:", "bright"))
-    console.log(colorize("=".repeat(40), "blue"))
+    if (rule.meta?.type) {
+      const typeColor = rule.meta.type === "problem" ? "red" : rule.meta.type === "suggestion" ? "yellow" : "blue"
+      console.log(`  ${colorize("Type:", "cyan")} ${colorize(rule.meta.type, typeColor)}`)
+    }
 
-    const rules = Object.keys(plugin.rules)
-
-    rules.forEach((ruleName) => {
-      const rule = plugin.rules[ruleName]
-      const fullName = `functype/${ruleName}`
-
-      console.log(`\n${colorize("●", "green")} ${colorize(fullName, "bright")}`)
-
-      if (rule.meta?.docs?.description) {
-        console.log(`  ${colorize("Description:", "cyan")} ${rule.meta.docs.description}`)
-      }
-
-      if (rule.meta?.type) {
-        const typeColor = rule.meta.type === "problem" ? "red" : rule.meta.type === "suggestion" ? "yellow" : "blue"
-        console.log(`  ${colorize("Type:", "cyan")} ${colorize(rule.meta.type, typeColor)}`)
-      }
-
-      if (rule.meta?.fixable) {
-        console.log(`  ${colorize("Fixable:", "cyan")} ${colorize("Yes", "green")}`)
-      }
-
-      if (showUsage) {
-        console.log(`  ${colorize("Usage:", "cyan")} "${fullName}": "error"`)
-      }
-    })
-
-    console.log(colorize(`\n📊 Summary: ${rules.length} custom rules available`, "bright"))
+    if (rule.meta?.fixable) {
+      console.log(`  ${colorize("Fixable:", "cyan")} ${colorize("Yes", "green")}`)
+    }
 
     if (showUsage) {
-      printCustomUsageInfo()
+      console.log(`  ${colorize("Usage:", "cyan")} "${fullName}": "error"`)
     }
+  })
 
-    console.log(colorize("\n💡 Tips:", "bright"))
-    console.log("• Use --verbose to see detailed rule information")
-    console.log("• Use --usage to see configuration examples")
-    console.log('• All rules are prefixed with "functype/"')
-    console.log("• Consider using eslint-config-functype for pre-configured setup")
+  console.log(colorize(`\n📊 Summary: ${rules.length} custom rules available`, "bright"))
 
-    console.log(colorize("\n🔗 Links:", "bright"))
-    console.log("• Documentation: https://github.com/jordanburke/eslint-plugin-functype")
-    console.log("• Configuration Bundle: https://github.com/jordanburke/eslint-config-functype")
-    console.log("• Functype Library: https://github.com/jordanburke/functype")
-  } catch (error) {
-    console.error(colorize("❌ Error loading plugin:", "red"), (error as Error).message)
-    process.exit(1)
+  if (showUsage) {
+    printCustomUsageInfo()
   }
+
+  console.log(colorize("\n💡 Tips:", "bright"))
+  console.log("• Use --verbose to see detailed rule information")
+  console.log("• Use --usage to see configuration examples")
+  console.log('• All rules are prefixed with "functype/"')
+  console.log("• Consider using eslint-config-functype for pre-configured setup")
+
+  console.log(colorize("\n🔗 Links:", "bright"))
+  console.log("• Documentation: https://github.com/jordanburke/eslint-plugin-functype")
+  console.log("• Configuration Bundle: https://github.com/jordanburke/eslint-config-functype")
+  console.log("• Functype Library: https://github.com/jordanburke/functype")
 }
 
 function printCustomUsageInfo(): void {
