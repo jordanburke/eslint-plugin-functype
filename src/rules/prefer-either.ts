@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer Either<E, T> over try/catch blocks and throw statements",
-      category: "Best Practices",
       recommended: true,
     },
     schema: [
@@ -33,7 +32,7 @@ const rule: Rule.RuleModule = {
     const allowThrowInTests = options.allowThrowInTests !== false
 
     function isInTestFile() {
-      const filename = context.getFilename()
+      const filename = context.filename
       return (
         /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
         filename.includes("__tests__") ||

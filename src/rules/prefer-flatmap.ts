@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer .flatMap() over .map().flat() and nested transformations",
-      category: "Best Practices",
       recommended: true,
     },
     fixable: "code",

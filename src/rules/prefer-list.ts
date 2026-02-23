@@ -7,7 +7,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer List<T> over native arrays for immutable collections",
-      category: "Stylistic Issues",
       recommended: true,
     },
     schema: [
@@ -41,7 +40,7 @@ const rule: Rule.RuleModule = {
     const functypeImports = getFunctypeImportsLegacy(context)
 
     function isInTestFile() {
-      const filename = context.getFilename()
+      const filename = context.filename
       return (
         /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
         filename.includes("__tests__") ||
@@ -104,14 +103,9 @@ const rule: Rule.RuleModule = {
         const sourceCode = context.sourceCode
 
         // Get type name - handle both simple identifiers and member expressions
-        let typeName = ""
-        if (node.typeName && node.typeName.type === "Identifier") {
-          typeName = node.typeName.name
-        } else if (node.typeName) {
-          typeName = sourceCode.getText(node.typeName)
-        } else {
-          return // No type name found
-        }
+        if (!node.typeName) return // No type name found
+
+        const typeName = node.typeName.type === "Identifier" ? node.typeName.name : sourceCode.getText(node.typeName)
 
         // Handle Array<T> syntax
         if (typeName === "Array") {

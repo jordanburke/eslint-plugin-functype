@@ -7,7 +7,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer Do notation for complex monadic compositions and nested operations",
-      category: "Best Practices",
       recommended: true,
     },
     fixable: "code",

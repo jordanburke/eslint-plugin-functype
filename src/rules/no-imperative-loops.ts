@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer functional iteration methods over imperative for loops",
-      category: "Best Practices",
       recommended: true,
     },
     schema: [
@@ -46,7 +45,7 @@ const rule: Rule.RuleModule = {
     const allowInTests = options.allowInTests !== false
 
     function isInTestFile() {
-      const filename = context.getFilename()
+      const filename = context.filename
       return (
         /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
         filename.includes("__tests__") ||

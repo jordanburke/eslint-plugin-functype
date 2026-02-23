@@ -7,7 +7,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer Option<T> over nullable types (T | null | undefined)",
-      category: "Stylistic Issues",
       recommended: true,
     },
     schema: [

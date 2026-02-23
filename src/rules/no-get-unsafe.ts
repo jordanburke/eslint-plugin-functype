@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description: "Avoid unsafe .get() calls on Option, Either, and other monadic types",
-      category: "Possible Errors",
       recommended: true,
     },
     fixable: "code",
@@ -39,7 +38,7 @@ const rule: Rule.RuleModule = {
     const unsafeMethods = options.unsafeMethods || ["get", "getOrThrow", "unwrap", "expect"]
 
     function isInTestFile() {
-      const filename = context.getFilename()
+      const filename = context.filename
       return (
         /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filename) ||
         filename.includes("__tests__") ||

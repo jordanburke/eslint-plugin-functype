@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer .map() over manual transformations and imperative patterns",
-      category: "Best Practices",
       recommended: true,
     },
     fixable: "code",

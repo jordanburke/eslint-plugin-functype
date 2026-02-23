@@ -6,7 +6,6 @@ const rule: Rule.RuleModule = {
     type: "suggestion",
     docs: {
       description: "Prefer .fold() over if/else chains when working with monadic types",
-      category: "Best Practices",
       recommended: true,
     },
     fixable: "code",
