@@ -56,14 +56,15 @@
   },
   "prettier": "ts-builds/prettier",
   "peerDependencies": {
-    "eslint": "^10.0.1"
+    "eslint": "^10.0.3"
   },
   "devDependencies": {
-    "@typescript-eslint/rule-tester": "^8.56.1",
-    "eslint-config-prettier": "^10.1.5",
-    "functype": "^0.47.0",
-    "ts-builds": "^2.4.0",
-    "tsdown": "^0.20.0"
+    "@types/node": "^24.12.0",
+    "@typescript-eslint/rule-tester": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "functype": "^0.49.0",
+    "ts-builds": "^2.5.1",
+    "tsdown": "^0.21.2"
   },
   "author": {
     "name": "Jordan Burke",
@@ -86,5 +87,5 @@
       "esbuild"
     ]
   },
-  "packageManager": "pnpm@10.30.1+sha512.3590e550d5384caa39bd5c7c739f72270234b2f6059e13018f975c313b1eb9fefcc09714048765d4d9efe961382c312e624572c0420762bdc5d5940cdf9be73a"
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
 }
